@@ -33,11 +33,14 @@ export function UserProfile() {
     );
   }
 
+  // Local binding so nested functions see a non-null profile (TS build)
+  const current = profile;
+
   const display = editing
     ? form
-    : { name: profile.name, phone: profile.phone, city: profile.city };
+    : { name: current.name, phone: current.phone, city: current.city };
 
-  const initials = profile.name
+  const initials = current.name
     .split(" ")
     .filter(Boolean)
     .slice(0, 2)
@@ -46,9 +49,9 @@ export function UserProfile() {
 
   function startEdit() {
     setForm({
-      name: profile.name,
-      phone: profile.phone,
-      city: profile.city,
+      name: current.name,
+      phone: current.phone,
+      city: current.city,
     });
     setErrors({});
     setEditing(true);
