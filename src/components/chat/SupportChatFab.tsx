@@ -6,6 +6,7 @@ import { Headphones, X } from "lucide-react";
 import { ChatWindow } from "@/components/chat/ChatWindow";
 import { supportChatId } from "@/lib/chat";
 import { useAuthStore } from "@/store/authStore";
+import { useT } from "@/store/localeStore";
 
 interface SupportChatFabProps {
   open?: boolean;
@@ -17,6 +18,7 @@ export function SupportChatFab({
   onOpenChange,
 }: SupportChatFabProps) {
   const { user, profile } = useAuthStore();
+  const { t } = useT();
   const [internalOpen, setInternalOpen] = useState(false);
   const open = controlledOpen ?? internalOpen;
 
@@ -56,8 +58,8 @@ export function SupportChatFab({
                   peerUserId={user.uid}
                   peerUserName={profile.name}
                   chatType="support"
-                  title="Help & Support"
-                  subtitle="Ask anything — we are here to help"
+                  title={t.chat.helpSupport}
+                  subtitle={t.chat.helpSubtitle}
                   compact
                 />
               </div>
@@ -79,10 +81,11 @@ export function SupportChatFab({
             <Headphones className="h-6 w-6" />
           )}
           <span className="pointer-events-none absolute bottom-full right-0 mb-2 whitespace-nowrap rounded-lg bg-[var(--ink)] px-2.5 py-1 text-xs text-white opacity-0 transition-opacity group-hover:opacity-100">
-            Help &amp; Support
+            {t.chat.helpSupport}
           </span>
         </motion.button>
       </div>
     </>
   );
 }
+

@@ -1,4 +1,4 @@
-export const APP_NAME = "Cosmic Guide";
+export const APP_NAME = "Astro Bodh";
 export const ASTROLOGER_NAME = "Acharya Rishabh Gautam";
 export const CONSULTATION_FEE = Number(
   process.env.NEXT_PUBLIC_CONSULTATION_FEE ?? 499

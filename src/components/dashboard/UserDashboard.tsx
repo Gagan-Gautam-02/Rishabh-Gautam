@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import Link from "next/link";
 import { format, parseISO } from "date-fns";
 import Image from "next/image";
 import toast from "react-hot-toast";
@@ -36,7 +35,6 @@ import {
   Star,
   Sun,
   UploadCloud,
-  UserRound,
   Video,
   ArrowLeft,
   X,
@@ -66,6 +64,7 @@ import {
 } from "@/lib/bookings";
 import { isFirebaseConfigured } from "@/lib/firebase";
 import { useAuthStore } from "@/store/authStore";
+import { useT } from "@/store/localeStore";
 import type { Booking, Slot } from "@/lib/types";
 
 type Tab = "services" | "book" | "status";
@@ -99,6 +98,7 @@ const serviceIcons: Record<string, LucideIcon> = {
 
 export function UserDashboard() {
   const { user, profile } = useAuthStore();
+  const { t } = useT();
   const reduce = useReducedMotion();
   const [tab, setTab] = useState<Tab>("services");
   const [slots, setSlots] = useState<Slot[]>([]);
@@ -178,7 +178,7 @@ export function UserDashboard() {
 
   async function submitBooking() {
     if (!user || !profile || !selectedSlot || !file) {
-      toast.error("Select slot and upload screenshot");
+      toast.error(t.dashboard.selectSlotScreenshot);
       return;
     }
     setSubmitting(true);
@@ -194,7 +194,7 @@ export function UserDashboard() {
         amount: consultationFee,
         screenshotUrl,
       });
-      toast.success("Booking submitted");
+      toast.success(t.dashboard.bookingSubmitted);
       setSelectedSlot(null);
       setSelectedDate("");
       handleFile(null);
@@ -207,11 +207,9 @@ export function UserDashboard() {
         msg.toLowerCase().includes("permission") ||
         msg.toLowerCase().includes("unauthorized")
       ) {
-        toast.error(
-          "Upload blocked. Publish storage.rules in Firebase Console → Storage → Rules, then retry."
-        );
+        toast.error(t.dashboard.uploadBlocked);
       } else if (msg.toLowerCase().includes("storage")) {
-        toast.error("Storage upload failed. Check Storage is enabled.");
+        toast.error(t.dashboard.storageFailed);
       } else {
         toast.error(msg.slice(0, 120) || "Could not submit booking");
       }
@@ -252,7 +250,7 @@ export function UserDashboard() {
     if (!birthDetails.time) next.time = "Time of birth required";
     setBirthErrors(next);
     if (Object.keys(next).length > 0) {
-      toast.error("Fill all birth details");
+      toast.error(t.dashboard.fillBirthDetails);
       return;
     }
     setServiceStep("payment");
@@ -260,7 +258,7 @@ export function UserDashboard() {
 
   async function submitServiceRequest() {
     if (!user || !profile || !selectedService || !file) {
-      toast.error("Upload payment screenshot");
+      toast.error(t.dashboard.uploadScreenshot);
       return;
     }
     setSubmitting(true);
@@ -278,7 +276,7 @@ export function UserDashboard() {
         birthPlace: birthDetails.place.trim(),
         birthTime: birthDetails.time,
       });
-      toast.success("Request submitted — sent to admin");
+      toast.success(t.dashboard.requestSubmitted);
       resetServiceRequest();
       setTab("status");
     } catch (err: unknown) {
@@ -288,11 +286,9 @@ export function UserDashboard() {
         msg.toLowerCase().includes("permission") ||
         msg.toLowerCase().includes("unauthorized")
       ) {
-        toast.error(
-          "Upload blocked. Publish storage.rules in Firebase Console → Storage → Rules, then retry."
-        );
+        toast.error(t.dashboard.uploadBlocked);
       } else if (msg.toLowerCase().includes("storage")) {
-        toast.error("Storage upload failed. Check Storage is enabled.");
+        toast.error(t.dashboard.storageFailed);
       } else {
         toast.error(msg.slice(0, 120) || "Could not submit request");
       }
@@ -302,17 +298,17 @@ export function UserDashboard() {
   }
 
   const tabs: { id: Tab; label: string; icon: typeof Calendar }[] = [
-    { id: "services", label: "Services", icon: LayoutGrid },
-    { id: "book", label: "Book Slot", icon: Calendar },
-    { id: "status", label: "My Bookings", icon: History },
+    { id: "services", label: t.dashboard.tabServices, icon: LayoutGrid },
+    { id: "book", label: t.dashboard.tabBook, icon: Calendar },
+    { id: "status", label: t.dashboard.tabBookings, icon: History },
   ];
 
   if (!isFirebaseConfigured()) {
     return (
       <div className="mx-auto max-w-5xl px-4 py-10 sm:px-6">
         <EmptyState
-          title="Firebase not configured"
-          description="Copy .env.local.example to .env.local and add your Firebase project keys."
+          title={t.dashboard.firebaseMissing}
+          description={t.dashboard.firebaseMissingHint}
         />
       </div>
     );
@@ -327,39 +323,23 @@ export function UserDashboard() {
 
   return (
     <div className="mx-auto w-full max-w-5xl px-4 py-8 sm:px-6 sm:py-10">
-      <div className="mb-8 flex flex-wrap items-end justify-between gap-4">
-        <div>
-          <p className="eyebrow mb-2">Your dashboard</p>
-          <h1 className="font-display text-[clamp(1.75rem,4vw,2.5rem)] font-semibold text-[var(--ink)]">
-            Hello, {profile?.name?.split(" ")[0] ?? "there"}
-          </h1>
-          <p className="mt-1 text-sm text-[var(--faint)]">
-            Book a consultation and track your session status
-          </p>
+      <div className="mb-7 flex justify-center">
+        <div className="inline-flex gap-2 overflow-x-auto rounded-2xl border border-[var(--border)] bg-[var(--surface)]/55 p-2 shadow-[var(--shadow-sm)] backdrop-blur-md">
+          {tabs.map(({ id, label, icon: Icon }) => (
+            <button
+              key={id}
+              onClick={() => setTab(id)}
+              className={`inline-flex shrink-0 items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-medium transition-colors ${
+                tab === id
+                  ? "bg-[var(--primary)] text-[var(--ink)] shadow-[var(--shadow-sm)]"
+                  : "text-[var(--body)] hover:bg-[var(--primary-soft)]"
+              }`}
+            >
+              <Icon className="h-4 w-4" />
+              {label}
+            </button>
+          ))}
         </div>
-        <Link href="/profile">
-          <Button size="sm" variant="secondary">
-            <UserRound className="h-4 w-4" />
-            My Profile
-          </Button>
-        </Link>
-      </div>
-
-      <div className="mb-7 flex gap-2 overflow-x-auto pb-1">
-        {tabs.map(({ id, label, icon: Icon }) => (
-          <button
-            key={id}
-            onClick={() => setTab(id)}
-            className={`inline-flex shrink-0 items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-medium transition-colors ${
-              tab === id
-                ? "bg-[var(--primary)] text-[var(--ink)] shadow-[var(--shadow-sm)]"
-                : "border border-[var(--border)] bg-[var(--surface)] text-[var(--body)] hover:border-[var(--primary)]/40"
-            }`}
-          >
-            <Icon className="h-4 w-4" />
-            {label}
-          </button>
-        ))}
       </div>
 
       <div className="w-full">
@@ -370,15 +350,17 @@ export function UserDashboard() {
               <>
                 <div className="mb-5">
                   <h2 className="font-display text-xl font-semibold text-[var(--ink)]">
-                    Astrology services
+                    {t.dashboard.astrologyServices}
                   </h2>
                   <p className="mt-1 text-sm text-[var(--faint)]">
-                    Choose a service, enter birth details, then complete payment
+                    {t.dashboard.servicesHint}
                   </p>
                 </div>
                 <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
                   {DASHBOARD_SERVICES.map((service, i) => {
                     const Icon = serviceIcons[service.icon] ?? Sparkles;
+                    const localized =
+                      t.dashboardServices[service.title] ?? service;
                     return (
                       <motion.button
                         key={service.title}
@@ -394,13 +376,13 @@ export function UserDashboard() {
                         className="flex min-h-[168px] flex-col items-center justify-center rounded-2xl border border-[var(--border)] bg-[var(--surface)] px-5 py-6 text-center shadow-[var(--shadow-sm)] transition-colors hover:border-[var(--gold)]/50 hover:shadow-[var(--shadow-md)]"
                       >
                         <p className="text-sm font-semibold text-[var(--ink)]">
-                          {service.title}
+                          {localized.title}
                         </p>
                         <span className="my-4 flex h-12 w-12 items-center justify-center rounded-xl bg-[var(--gold-soft)] text-[var(--gold-ink)]">
                           <Icon className="h-6 w-6" strokeWidth={1.6} />
                         </span>
                         <p className="text-xs leading-relaxed text-[var(--faint)]">
-                          {service.description}
+                          {localized.description}
                         </p>
                       </motion.button>
                     );
@@ -419,13 +401,13 @@ export function UserDashboard() {
                   className="inline-flex items-center gap-2 text-sm font-medium text-[var(--primary)] hover:underline"
                 >
                   <ArrowLeft className="h-4 w-4" />
-                  {serviceStep === "payment" ? "Back to details" : "All services"}
+                  {serviceStep === "payment" ? t.dashboard.backToDetails : t.dashboard.allServices}
                 </button>
 
                 <div>
-                  <p className="eyebrow mb-1">Service request</p>
+                  <p className="eyebrow mb-1">{t.dashboard.serviceRequest}</p>
                   <h2 className="font-display text-xl font-semibold text-[var(--ink)]">
-                    {selectedService}
+                    {t.dashboardServices[selectedService]?.title ?? selectedService}
                   </h2>
                 </div>
 
@@ -435,11 +417,11 @@ export function UserDashboard() {
                       <span className="flex h-6 w-6 items-center justify-center rounded-full bg-[var(--primary)] text-xs text-[var(--ink)]">
                         1
                       </span>
-                      Birth details
+                      {t.dashboard.birthDetails}
                     </h3>
                     <div className="grid gap-4 sm:grid-cols-2">
                       <Input
-                        label="Name"
+                        label={t.dashboard.name}
                         value={birthDetails.name}
                         error={birthErrors.name}
                         onChange={(e) =>
@@ -447,7 +429,7 @@ export function UserDashboard() {
                         }
                       />
                       <Input
-                        label="Date of Birth"
+                        label={t.dashboard.dob}
                         type="date"
                         value={birthDetails.dob}
                         error={birthErrors.dob}
@@ -456,7 +438,7 @@ export function UserDashboard() {
                         }
                       />
                       <Input
-                        label="Place of Birth"
+                        label={t.dashboard.place}
                         value={birthDetails.place}
                         error={birthErrors.place}
                         onChange={(e) =>
@@ -467,7 +449,7 @@ export function UserDashboard() {
                         }
                       />
                       <Input
-                        label="Time of Birth"
+                        label={t.dashboard.time}
                         type="time"
                         value={birthDetails.time}
                         error={birthErrors.time}
@@ -480,7 +462,7 @@ export function UserDashboard() {
                       />
                     </div>
                     <Button onClick={continueToPayment} className="mt-6 w-full sm:w-auto">
-                      Continue to Payment
+                      {t.dashboard.continuePayment}
                     </Button>
                   </section>
                 )}
@@ -491,7 +473,7 @@ export function UserDashboard() {
                       <span className="flex h-6 w-6 items-center justify-center rounded-full bg-[var(--primary)] text-xs text-[var(--ink)]">
                         2
                       </span>
-                      Payment
+                      {t.dashboard.payment}
                     </h3>
                     <p className="mb-4 text-sm text-[var(--faint)]">
                       Pay ₹{consultationFee} via UPI, then upload the screenshot
@@ -559,7 +541,7 @@ export function UserDashboard() {
                             <UploadCloud className="h-8 w-8 text-[var(--faint)] transition-colors group-hover:text-[var(--primary)]" />
                           )}
                           <span className="mt-3 text-sm font-medium text-[var(--ink)]">
-                            {file ? "Change screenshot" : "Upload payment screenshot"}
+                            {file ? t.dashboard.uploadScreenshot : t.dashboard.uploadScreenshot}
                           </span>
                           <span className="mt-1 text-xs text-[var(--faint)]">
                             PNG or JPG, up to 10 MB
@@ -580,10 +562,10 @@ export function UserDashboard() {
                           disabled={!file}
                           className="w-full"
                         >
-                          Submit Request
+                          {t.dashboard.submitRequest}
                         </Button>
                         <p className="text-center text-xs text-[var(--faint)]">
-                          Details go to the admin portal after payment verification.
+                          {t.dashboard.paymentNote}
                         </p>
                       </div>
                     </div>
@@ -612,8 +594,8 @@ export function UserDashboard() {
               ) : availableDates.length === 0 ? (
                 <EmptyState
                   icon={<Calendar className="h-6 w-6" />}
-                  title="No slots available yet"
-                  description="Check back soon — the astrologer will open new times."
+                  title={t.dashboard.noSlots}
+                  description={t.dashboard.noSlotsHint}
                 />
               ) : (
                 <div className="grid grid-cols-3 gap-2 sm:grid-cols-4 md:grid-cols-6">
@@ -754,7 +736,7 @@ export function UserDashboard() {
                           <UploadCloud className="h-8 w-8 text-[var(--faint)] transition-colors group-hover:text-[var(--primary)]" />
                         )}
                         <span className="mt-3 text-sm font-medium text-[var(--ink)]">
-                          {file ? "Change screenshot" : "Upload payment screenshot"}
+                          {t.dashboard.uploadScreenshot}
                         </span>
                         <span className="mt-1 text-xs text-[var(--faint)]">
                           PNG or JPG, up to 10 MB
@@ -776,11 +758,10 @@ export function UserDashboard() {
                         disabled={!file}
                         className="w-full"
                       >
-                        Submit Booking
+                        {t.dashboard.submitBooking}
                       </Button>
                       <p className="text-center text-xs text-[var(--faint)]">
-                        Your booking will be confirmed within a few hours of
-                        payment verification.
+                        {t.dashboard.paymentNote}
                       </p>
                     </div>
                   </div>
@@ -795,10 +776,10 @@ export function UserDashboard() {
             {bookings.length === 0 ? (
               <EmptyState
                 icon={<History className="h-6 w-6" />}
-                title="No bookings yet"
-                description="Book a slot to see your consultation status here."
+                title={t.dashboard.noBookings}
+                description={t.dashboard.noBookingsHint}
                 action={
-                  <Button onClick={() => setTab("book")}>Book a Session</Button>
+                  <Button onClick={() => setTab("book")}>{t.dashboard.bookASession}</Button>
                 }
               />
             ) : (
@@ -808,6 +789,15 @@ export function UserDashboard() {
                   Boolean(b.meetLink) &&
                   (Boolean(b.serviceName) ||
                     isMeetJoinUnlocked(b.date, b.timeSlot, new Date(now)));
+                const statusLabel =
+                  b.status === "pending"
+                    ? t.status.pending
+                    : b.status === "confirmed"
+                      ? t.status.confirmed
+                      : t.status.rejected;
+                const serviceLabel = b.serviceName
+                  ? t.dashboardServices[b.serviceName]?.title ?? b.serviceName
+                  : null;
 
                 return (
                   <div
@@ -816,14 +806,14 @@ export function UserDashboard() {
                   >
                     <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                       <div>
-                        {b.serviceName && (
+                        {serviceLabel && (
                           <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-[var(--gold-ink)]">
-                            {b.serviceName}
+                            {serviceLabel}
                           </p>
                         )}
                         <p className="font-medium text-[var(--ink)]">
                           {b.serviceName
-                            ? `${b.birthName ?? b.userName} · DOB ${b.dob ?? b.date}`
+                            ? `${b.birthName ?? b.userName} · ${t.dashboard.dob} ${b.dob ?? b.date}`
                             : `${format(parseISO(b.date), "EEEE, MMM d, yyyy")} · ${b.timeSlot}`}
                         </p>
                         <p className="mt-1 text-sm text-[var(--faint)]">
@@ -833,14 +823,14 @@ export function UserDashboard() {
                         </p>
                       </div>
                       <div className="flex items-center gap-3">
-                        <Badge status={b.status}>{b.status}</Badge>
+                        <Badge status={b.status}>{statusLabel}</Badge>
                         {b.status === "confirmed" && (
                           <Button
                             size="sm"
                             variant="secondary"
                             onClick={() => setPaidChatOpen(true)}
                           >
-                            Paid Chat
+                            {t.dashboard.chat}
                           </Button>
                         )}
                       </div>
@@ -854,22 +844,11 @@ export function UserDashboard() {
                           </span>
                           <div className="min-w-0 flex-1">
                             <p className="text-sm font-semibold text-[var(--ink)]">
-                              Google Meet session
+                              Google Meet
                             </p>
                             <p className="mt-0.5 text-xs text-[var(--body)]">
-                              You get the link 30 min before your booked time.
+                              {t.dashboard.meetLocked}
                             </p>
-                            {!b.meetLink && (
-                              <p className="mt-2 text-xs text-[var(--amber)]">
-                                Waiting for the astrologer to add the Meet link.
-                              </p>
-                            )}
-                            {b.meetLink && !meetReady && (
-                              <p className="mt-2 text-xs text-[var(--faint)]">
-                                Link is ready. Join opens 30 minutes before{" "}
-                                {b.timeSlot}.
-                              </p>
-                            )}
                             {meetReady && b.meetLink && (
                               <a
                                 href={b.meetLink}
@@ -879,7 +858,7 @@ export function UserDashboard() {
                               >
                                 <Button size="sm">
                                   <Video className="h-4 w-4" />
-                                  Join Google Meet
+                                  {t.dashboard.meetLink}
                                 </Button>
                               </a>
                             )}
@@ -930,8 +909,8 @@ export function UserDashboard() {
                 peerUserId={user.uid}
                 peerUserName={profile.name}
                 chatType="paid"
-                title="Consultation Chat"
-                subtitle="Private chat for your paid session"
+                title={t.chat.paidTitle}
+                subtitle={t.chat.helpSubtitle}
               />
             </motion.div>
           </motion.div>

@@ -1,4 +1,4 @@
-# Cosmic Guide — Astrology Consultation Booking
+# Astro Bodh — Astrology Consultation Booking
 
 Full-stack booking platform built with **Next.js (App Router)**, **Firebase Auth / Firestore / Storage**, and **Framer Motion**.
 

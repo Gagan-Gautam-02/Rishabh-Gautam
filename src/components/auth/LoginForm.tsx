@@ -8,11 +8,13 @@ import toast from "react-hot-toast";
 import { Input } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
 import { useAuthStore } from "@/store/authStore";
+import { useT } from "@/store/localeStore";
 import { isFirebaseConfigured } from "@/lib/firebase";
 
 export function LoginForm() {
   const router = useRouter();
   const login = useAuthStore((s) => s.login);
+  const { t } = useT();
   const [loading, setLoading] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -20,17 +22,17 @@ export function LoginForm() {
   async function onSubmit(e: FormEvent) {
     e.preventDefault();
     if (!email || !password) {
-      toast.error("Email and password required");
+      toast.error(t.auth.emailPasswordRequired);
       return;
     }
     if (!isFirebaseConfigured()) {
-      toast.error("Add Firebase keys to .env.local");
+      toast.error(t.dashboard.firebaseMissingHint);
       return;
     }
     setLoading(true);
     try {
       await login(email, password);
-      toast.success("Welcome back");
+      toast.success(t.auth.welcomeToast);
       const profile = useAuthStore.getState().profile;
       router.push(profile?.role === "admin" ? "/admin" : "/dashboard");
     } catch (err: unknown) {
@@ -51,37 +53,35 @@ export function LoginForm() {
       className="relative mx-auto w-full max-w-md overflow-hidden rounded-3xl border border-[var(--border)] bg-[var(--surface)] p-7 shadow-[var(--shadow-lg)] sm:p-9"
     >
       <div className="constellation pointer-events-none absolute inset-x-0 top-0 h-24 opacity-60" />
-      <p className="eyebrow mb-3">Welcome back</p>
+      <p className="eyebrow mb-3">{t.auth.welcomeBack}</p>
       <h1 className="font-display text-3xl font-semibold text-[var(--ink)]">
-        Sign in to continue
+        {t.auth.signInTitle}
       </h1>
-      <p className="mt-1.5 text-sm text-[var(--faint)]">
-        Manage your bookings and consultations
-      </p>
+      <p className="mt-1.5 text-sm text-[var(--faint)]">{t.auth.signInSub}</p>
       <form onSubmit={onSubmit} className="mt-7 space-y-4">
         <Input
-          label="Email"
+          label={t.auth.email}
           type="email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
         />
         <Input
-          label="Password"
+          label={t.auth.password}
           type="password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
         />
         <Button type="submit" className="w-full" loading={loading}>
-          Login
+          {t.auth.login}
         </Button>
       </form>
       <p className="mt-5 text-center text-sm text-[var(--faint)]">
-        New here?{" "}
+        {t.auth.newHere}{" "}
         <Link
           href="/signup"
           className="font-medium text-[var(--primary)] hover:underline"
         >
-          Create an account
+          {t.auth.createAccount}
         </Link>
       </p>
     </motion.div>

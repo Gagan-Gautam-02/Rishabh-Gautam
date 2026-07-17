@@ -17,9 +17,11 @@ import toast from "react-hot-toast";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { useAuthStore } from "@/store/authStore";
+import { useT } from "@/store/localeStore";
 
 export function UserProfile() {
   const { user, profile, updateProfileInfo } = useAuthStore();
+  const { t } = useT();
   const [editing, setEditing] = useState(false);
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState({ name: "", phone: "", city: "" });
@@ -28,12 +30,11 @@ export function UserProfile() {
   if (!user || !profile) {
     return (
       <div className="mx-auto max-w-2xl px-4 py-16 text-center">
-        <p className="text-[var(--faint)]">Loading profile…</p>
+        <p className="text-[var(--faint)]">{t.profile.loading}</p>
       </div>
     );
   }
 
-  // Local binding so nested functions see a non-null profile (TS build)
   const current = profile;
 
   const display = editing
@@ -59,11 +60,11 @@ export function UserProfile() {
 
   function validate() {
     const next: Record<string, string> = {};
-    if (!form.name.trim()) next.name = "Name required";
+    if (!form.name.trim()) next.name = t.profile.nameRequired;
     if (form.phone.replace(/\D/g, "").length < 10) {
-      next.phone = "Valid phone required";
+      next.phone = t.profile.phoneRequired;
     }
-    if (!form.city.trim()) next.city = "City required";
+    if (!form.city.trim()) next.city = t.profile.cityRequired;
     setErrors(next);
     return Object.keys(next).length === 0;
   }
@@ -74,10 +75,10 @@ export function UserProfile() {
     setSaving(true);
     try {
       await updateProfileInfo(form);
-      toast.success("Profile updated");
+      toast.success(t.profile.updated);
       setEditing(false);
     } catch (err: unknown) {
-      toast.error(err instanceof Error ? err.message : "Could not save");
+      toast.error(err instanceof Error ? err.message : t.profile.saveFailed);
     } finally {
       setSaving(false);
     }
@@ -95,7 +96,7 @@ export function UserProfile() {
         className="mb-6 inline-flex items-center gap-2 text-sm font-medium text-[var(--primary)] hover:underline"
       >
         <ArrowLeft className="h-4 w-4" />
-        Back to dashboard
+        {t.profile.back}
       </Link>
 
       <motion.div
@@ -111,15 +112,15 @@ export function UserProfile() {
               {initials || <UserRound className="h-8 w-8" />}
             </div>
             <div className="text-center sm:flex-1 sm:text-left">
-              <p className="eyebrow mb-1">Your profile</p>
+              <p className="eyebrow mb-1">{t.profile.eyebrow}</p>
               <h1 className="font-display text-2xl font-semibold text-[var(--ink)] sm:text-3xl">
-                {profile.name}
+                {current.name}
               </h1>
-              <p className="mt-1 text-sm text-[var(--faint)]">{profile.email}</p>
+              <p className="mt-1 text-sm text-[var(--faint)]">{current.email}</p>
             </div>
             {!editing && (
               <Button size="sm" variant="secondary" onClick={startEdit}>
-                Edit profile
+                {t.profile.edit}
               </Button>
             )}
           </div>
@@ -130,61 +131,63 @@ export function UserProfile() {
             <dl className="space-y-4">
               <InfoRow
                 icon={<UserRound className="h-4 w-4" />}
-                label="Full name"
+                label={t.profile.fullName}
                 value={display.name}
               />
               <InfoRow
                 icon={<Mail className="h-4 w-4" />}
-                label="Email"
-                value={profile.email}
+                label={t.profile.email}
+                value={current.email}
               />
               <InfoRow
                 icon={<Phone className="h-4 w-4" />}
-                label="Phone"
+                label={t.profile.phone}
                 value={display.phone || "—"}
               />
               <InfoRow
                 icon={<MapPin className="h-4 w-4" />}
-                label="City"
+                label={t.profile.city}
                 value={display.city || "—"}
               />
               <InfoRow
                 icon={<Shield className="h-4 w-4" />}
-                label="Account type"
-                value={profile.role === "admin" ? "Admin" : "Member"}
+                label={t.profile.accountType}
+                value={
+                  current.role === "admin" ? t.profile.admin : t.profile.member
+                }
               />
               <InfoRow
                 icon={<CalendarDays className="h-4 w-4" />}
-                label="Member since"
-                value={format(profile.createdAt, "MMM d, yyyy")}
+                label={t.profile.memberSince}
+                value={format(current.createdAt, "MMM d, yyyy")}
               />
             </dl>
           ) : (
             <form onSubmit={onSave} className="space-y-4">
               <Input
-                label="Full name"
+                label={t.profile.fullName}
                 value={form.name}
                 error={errors.name}
                 onChange={(e) => setForm({ ...form, name: e.target.value })}
               />
               <Input
-                label="Email"
-                value={profile.email}
+                label={t.profile.email}
+                value={current.email}
                 disabled
                 className="opacity-70"
               />
               <p className="-mt-2 text-xs text-[var(--faint)]">
-                Email is linked to your login and cannot be changed here.
+                {t.profile.emailLocked}
               </p>
               <Input
-                label="Phone"
+                label={t.profile.phone}
                 type="tel"
                 value={form.phone}
                 error={errors.phone}
                 onChange={(e) => setForm({ ...form, phone: e.target.value })}
               />
               <Input
-                label="City"
+                label={t.profile.city}
                 value={form.city}
                 error={errors.city}
                 onChange={(e) => setForm({ ...form, city: e.target.value })}
@@ -196,10 +199,10 @@ export function UserProfile() {
                   onClick={cancelEdit}
                   disabled={saving}
                 >
-                  Cancel
+                  {t.profile.cancel}
                 </Button>
                 <Button type="submit" loading={saving}>
-                  Save changes
+                  {t.profile.save}
                 </Button>
               </div>
             </form>

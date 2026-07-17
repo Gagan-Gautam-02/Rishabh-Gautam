@@ -43,6 +43,7 @@ import { subscribeChatList, type ChatListItem } from "@/lib/chat";
 import { subscribeUsers } from "@/lib/users";
 import { isFirebaseConfigured } from "@/lib/firebase";
 import { useAuthStore } from "@/store/authStore";
+import { useT } from "@/store/localeStore";
 import type {
   Booking,
   Notification,
@@ -62,6 +63,7 @@ type AdminTab =
 
 export function AdminDashboard() {
   const { user } = useAuthStore();
+  const { t } = useT();
   const [tab, setTab] = useState<AdminTab>("bookings");
   const [slots, setSlots] = useState<Slot[]>([]);
   const [bookings, setBookings] = useState<Booking[]>([]);
@@ -214,32 +216,32 @@ export function AdminDashboard() {
   }
 
   const nav: { id: AdminTab; label: string; badge?: number }[] = [
-    { id: "bookings", label: "Bookings" },
-    { id: "slots", label: "Slots" },
-    { id: "users", label: "Users" },
-    { id: "notifications", label: "Alerts", badge: unreadCount },
-    { id: "support", label: "Support", badge: supportUnread || undefined },
-    { id: "paidChat", label: "Paid Chat", badge: paidUnread || undefined },
-    { id: "settings", label: "Fee" },
+    { id: "bookings", label: t.admin.bookings },
+    { id: "slots", label: t.admin.slots },
+    { id: "users", label: t.admin.users },
+    { id: "notifications", label: t.admin.alerts, badge: unreadCount },
+    { id: "support", label: t.admin.support, badge: supportUnread || undefined },
+    { id: "paidChat", label: t.admin.paidChat, badge: paidUnread || undefined },
+    { id: "settings", label: t.admin.fee },
   ];
 
   if (!isFirebaseConfigured()) {
     return (
       <div className="mx-auto max-w-6xl px-4 py-10 sm:px-6">
         <EmptyState
-          title="Firebase not configured"
-          description="Copy .env.local.example to .env.local and add your Firebase project keys."
+          title={t.dashboard.firebaseMissing}
+          description={t.dashboard.firebaseMissingHint}
         />
       </div>
     );
   }
 
   const statCards = [
-    { label: "Total Bookings", value: stats.total, icon: CalendarClock },
-    { label: "Pending", value: stats.pending, icon: Bell },
-    { label: "Confirmed", value: stats.confirmed, icon: Check },
+    { label: t.admin.totalBookings, value: stats.total, icon: CalendarClock },
+    { label: t.admin.pending, value: stats.pending, icon: Bell },
+    { label: t.admin.confirmed, value: stats.confirmed, icon: Check },
     {
-      label: "Revenue (7d)",
+      label: t.admin.revenue,
       value: `₹${stats.revenue.toLocaleString("en-IN")}`,
       icon: IndianRupee,
     },
@@ -249,12 +251,12 @@ export function AdminDashboard() {
     <div className="mx-auto w-full max-w-6xl px-4 py-8 sm:px-6 sm:py-10">
       <div className="mb-6 flex flex-wrap items-end justify-between gap-3">
         <div>
-          <p className="eyebrow mb-2">Control center</p>
+          <p className="eyebrow mb-2">{t.admin.title}</p>
           <h1 className="font-display text-[clamp(1.75rem,4vw,2.5rem)] font-semibold text-[var(--ink)]">
-            Admin Panel
+            {t.admin.title}
           </h1>
           <p className="mt-1 text-sm text-[var(--faint)]">
-            Manage slots, bookings, users, and chats
+            {t.admin.subtitle}
           </p>
         </div>
         {unreadCount > 0 && (
@@ -467,7 +469,7 @@ export function AdminDashboard() {
                 <input
                   value={userQuery}
                   onChange={(e) => setUserQuery(e.target.value)}
-                  placeholder="Search by name, city, or phone"
+                  placeholder={t.admin.searchUsers}
                   className="w-full rounded-xl border border-[var(--border-strong)] bg-[var(--bg-alt)] py-2.5 pl-10 pr-4 text-sm text-[var(--ink)] placeholder:text-[var(--faint)] outline-none transition-colors focus:border-[var(--primary)] focus:ring-4 focus:ring-[var(--ring)]"
                 />
               </div>
@@ -671,14 +673,14 @@ export function AdminDashboard() {
                                 size="sm"
                                 onClick={() => handleStatus(b, "confirmed")}
                               >
-                                <Check className="h-4 w-4" /> Accept
+                                <Check className="h-4 w-4" /> {t.admin.accept}
                               </Button>
                               <Button
                                 size="sm"
                                 variant="danger"
                                 onClick={() => handleStatus(b, "rejected")}
                               >
-                                <X className="h-4 w-4" /> Reject
+                                <X className="h-4 w-4" /> {t.admin.reject}
                               </Button>
                             </div>
                           )}
@@ -730,8 +732,8 @@ export function AdminDashboard() {
 
           {tab === "support" && (
             <AdminChatInbox
-              title="Help & Support"
-              emptyHint="Support messages from users appear here."
+              title={t.admin.helpSupport}
+              emptyHint={t.admin.supportEmpty}
               chats={filteredSupportChats}
               chatSearch={chatSearch}
               onSearch={setChatSearch}
@@ -744,8 +746,8 @@ export function AdminDashboard() {
 
           {tab === "paidChat" && (
             <AdminChatInbox
-              title="Paid consultations"
-              emptyHint="Paid user consultation chats appear here."
+              title={t.admin.paidConsultations}
+              emptyHint={t.admin.paidEmpty}
               chats={filteredPaidChats}
               chatSearch={chatSearch}
               onSearch={setChatSearch}
@@ -809,6 +811,7 @@ function AdminChatInbox({
   chatType: ChatType;
   adminId: string;
 }) {
+  const { t } = useT();
   const active = chats.find((c) => c.bookingId === activeId);
 
   return (
@@ -821,7 +824,7 @@ function AdminChatInbox({
         <input
           value={chatSearch}
           onChange={(e) => onSearch(e.target.value)}
-          placeholder="Search users..."
+          placeholder={t.admin.searchUsers}
           className="mb-3 w-full rounded-lg border border-[var(--border-strong)] bg-[var(--bg-alt)] px-3 py-2 text-sm text-[var(--ink)] placeholder:text-[var(--faint)] outline-none transition-colors focus:border-[var(--primary)]"
         />
         <div className="scroll-soft max-h-[26rem] space-y-1 overflow-y-auto">
@@ -846,7 +849,7 @@ function AdminChatInbox({
                     {c.userName}
                   </p>
                   <p className="truncate text-xs text-[var(--faint)]">
-                    {c.lastMessage || "No messages"}
+                    {c.lastMessage || t.chat.noMessages}
                   </p>
                 </div>
                 {c.unreadByAdmin > 0 && (
@@ -871,14 +874,14 @@ function AdminChatInbox({
             chatType={chatType}
             title={active.userName}
             subtitle={
-              chatType === "support" ? "Help & Support" : "Paid consultation"
+              chatType === "support" ? t.chat.helpSupport : t.chat.paidTitle
             }
           />
         ) : (
           <EmptyState
             icon={<MessageCircle className="h-6 w-6" />}
-            title="Select a conversation"
-            description="Each user has a separate thread in this inbox."
+            title={t.admin.selectConversation}
+            description={t.admin.selectConversationHint}
           />
         )}
       </div>

@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { motion, useReducedMotion } from "framer-motion";
 import type { LucideIcon } from "lucide-react";
 import {
@@ -30,7 +31,6 @@ import {
   Library,
   Lightbulb,
   Monitor,
-  MoonStar,
   Orbit,
   Phone,
   Sparkles,
@@ -42,6 +42,7 @@ import {
 import { Button } from "@/components/ui/Button";
 import { ASTROLOGER_NAME, FREE_FEATURES, SERVICES } from "@/lib/constants";
 import { useAuthStore } from "@/store/authStore";
+import { useT } from "@/store/localeStore";
 
 const serviceIconMap = { Briefcase, Heart, Activity, Home, Hash, Sparkles };
 
@@ -81,6 +82,7 @@ const freeIconMap: Record<string, LucideIcon> = {
 
 export function LandingPage() {
   const user = useAuthStore((s) => s.user);
+  const { t, tf } = useT();
   const reduce = useReducedMotion();
   const bookHref = user ? "/dashboard" : "/signup";
 
@@ -94,52 +96,57 @@ export function LandingPage() {
     <main>
       {/* Hero */}
       <section id="home" className="relative overflow-hidden">
-        <div className="constellation pointer-events-none absolute inset-0 opacity-70" />
+        <div className="pointer-events-none absolute inset-3 rounded-[2rem] border-2 border-[var(--gold)]/65 sm:inset-4 sm:rounded-[2.5rem]">
+          <div className="constellation absolute inset-0 rounded-[2rem] opacity-70 sm:rounded-[2.5rem]" />
+        </div>
         <div className="pointer-events-none absolute inset-x-0 top-0 h-[520px] bg-[radial-gradient(ellipse_at_top,_rgba(252,173,3,0.14),_transparent_60%)]" />
-        <div className="relative mx-auto flex max-w-6xl flex-col items-center px-4 pb-24 pt-16 text-center sm:px-6 sm:pt-24">
-          <motion.p {...rise(0)} className="eyebrow mb-5">
-            Trusted Vedic Astrology
+        <div className="relative mx-auto flex max-w-6xl flex-col items-center px-4 pb-24 pt-12 text-center sm:px-6 sm:pt-16">
+          <motion.div
+            initial={{ opacity: 0, scale: reduce ? 1 : 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.7, ease: "easeOut" }}
+            className="glow-ring relative mb-8 h-36 w-36 overflow-hidden rounded-full border border-[var(--gold)]/40 shadow-[var(--shadow-md)] sm:mb-10 sm:h-44 sm:w-44"
+          >
+            <Image
+              src="/astro-bodh-logo.png"
+              alt="Astro Bodh logo"
+              fill
+              priority
+              className="object-cover"
+              sizes="(max-width: 640px) 144px, 176px"
+            />
+          </motion.div>
+
+          <motion.p {...rise(0.08)} className="eyebrow mb-4">
+            {t.landing.philosophyTitle}
           </motion.p>
           <motion.h1
-            {...rise(0.08)}
-            className="max-w-4xl font-display text-[clamp(2.25rem,6vw,4rem)] font-semibold leading-[1.05] text-[var(--ink)]"
+            {...rise(0.14)}
+            className="max-w-4xl font-display text-[clamp(1.85rem,4.5vw,3rem)] font-semibold leading-[1.15] text-[var(--ink)]"
           >
-            Find clarity with expert{" "}
-            <span className="italic text-[var(--primary)]">astrology</span>{" "}
-            guidance
+            {t.landing.headline}
           </motion.h1>
           <motion.p
-            {...rise(0.16)}
-            className="mt-6 max-w-xl text-[clamp(0.95rem,2.5vw,1.125rem)] leading-relaxed text-[var(--body)]"
+            {...rise(0.2)}
+            className="mt-6 mb-7 max-w-2xl text-[clamp(0.95rem,2.5vw,1.125rem)] leading-relaxed text-[var(--body)]"
           >
-            Personalized consultations for career, relationships, health, and
-            life path — guided by classical planetary wisdom and compassionate
-            insight.
+            {t.landing.philosophyBody}
           </motion.p>
           <motion.div
-            {...rise(0.24)}
-            className="mt-9 flex flex-col items-center gap-4 sm:flex-row"
+            {...rise(0.28)}
+            className="mt-2 flex flex-col items-center gap-4 sm:flex-row"
           >
             <div className="glow-ring">
               <Link href={bookHref}>
-                <Button size="lg">Book a Session</Button>
+                <Button size="lg">{t.landing.bookSession}</Button>
               </Link>
             </div>
             <Link
               href="/#services"
               className="text-sm font-medium text-[var(--primary)] underline-offset-4 hover:underline"
             >
-              Learn more →
+              {t.landing.learnMore}
             </Link>
-          </motion.div>
-
-          <motion.div
-            initial={{ opacity: 0, scale: reduce ? 1 : 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ delay: 0.34, duration: 0.7, ease: "easeOut" }}
-            className="glow-ring mt-16 flex h-40 w-40 items-center justify-center rounded-full border border-[var(--gold)]/40 bg-[var(--surface)] shadow-[var(--shadow-md)] sm:h-52 sm:w-52"
-          >
-            <MoonStar className="h-16 w-16 text-[var(--gold-ink)] sm:h-20 sm:w-20" strokeWidth={1.2} />
           </motion.div>
         </div>
       </section>
@@ -157,9 +164,9 @@ export function LandingPage() {
             transition={{ duration: 0.45 }}
             className="mb-4 text-center"
           >
-            <p className="eyebrow mb-3">Explore for free</p>
+            <p className="eyebrow mb-3">{t.landing.freeEyebrow}</p>
             <h2 className="font-display text-[clamp(1.5rem,3.5vw,2.25rem)] font-semibold text-[var(--ink)]">
-              Free Horoscope and Astrology Services
+              {t.landing.freeTitle}
             </h2>
           </motion.div>
           <div className="divider-celestial mb-10">
@@ -173,6 +180,8 @@ export function LandingPage() {
                 const featured =
                   "featured" in feature && feature.featured === true;
                 const href = featured ? bookHref : "/#services";
+                const label =
+                  t.freeFeatures[feature.title] ?? feature.title;
                 return (
                   <motion.div
                     key={feature.title}
@@ -202,7 +211,7 @@ export function LandingPage() {
                         <Icon className="h-4 w-4" strokeWidth={1.75} />
                       </span>
                       <span className="text-sm font-medium leading-snug text-[var(--ink)]">
-                        {feature.title}
+                        {label}
                       </span>
                     </Link>
                   </motion.div>
@@ -222,9 +231,9 @@ export function LandingPage() {
           transition={{ duration: 0.5 }}
           className="mb-4 text-center"
         >
-          <p className="eyebrow mb-3">What we offer</p>
+          <p className="eyebrow mb-3">{t.landing.servicesEyebrow}</p>
           <h2 className="font-display text-[clamp(1.75rem,4vw,2.5rem)] font-semibold text-[var(--ink)]">
-            Guidance for every crossroad
+            {t.landing.servicesTitle}
           </h2>
         </motion.div>
         <div className="divider-celestial mb-12">
@@ -234,6 +243,7 @@ export function LandingPage() {
         <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
           {SERVICES.map((service, i) => {
             const Icon = serviceIconMap[service.icon];
+            const localized = t.services[service.title] ?? service;
             return (
               <motion.div
                 key={service.title}
@@ -248,10 +258,10 @@ export function LandingPage() {
                   <Icon className="h-5 w-5" />
                 </div>
                 <h3 className="font-display text-lg font-semibold text-[var(--ink)]">
-                  {service.title}
+                  {localized.title}
                 </h3>
                 <p className="mt-2 text-sm leading-relaxed text-[var(--faint)]">
-                  {service.description}
+                  {localized.description}
                 </p>
               </motion.div>
             );
@@ -275,7 +285,7 @@ export function LandingPage() {
                 <span className="font-display text-4xl text-[var(--gold)]">RG</span>
               </div>
               <p className="font-display text-2xl text-white">{ASTROLOGER_NAME}</p>
-              <p className="mt-1 text-sm text-white/60">Vedic Astrologer</p>
+              <p className="mt-1 text-sm text-white/60">{t.landing.vedicAstrologer}</p>
             </div>
           </motion.div>
 
@@ -285,22 +295,19 @@ export function LandingPage() {
             viewport={{ once: true, amount: 0.3 }}
             transition={{ duration: 0.6 }}
           >
-            <p className="eyebrow mb-3">About the astrologer</p>
+            <p className="eyebrow mb-3">{t.landing.aboutEyebrow}</p>
             <h2 className="font-display text-[clamp(1.75rem,4vw,2.5rem)] font-semibold text-[var(--ink)]">
-              A decade of trusted counsel
+              {t.landing.aboutTitle}
             </h2>
             <p className="mt-5 text-[15px] leading-relaxed text-[var(--body)]">
-              With over a decade of practice in Vedic astrology,{" "}
-              {ASTROLOGER_NAME} blends classical chart reading with practical,
-              compassionate guidance. Every consultation is personalized —
-              focused on clarity you can act on.
+              {tf(t.landing.aboutBio, { name: ASTROLOGER_NAME })}
             </p>
 
             <div className="mt-8 grid grid-cols-3 gap-4">
               {[
-                { label: "Years Experience", value: "12+", icon: Award },
-                { label: "Consultations", value: "5,000+", icon: Users },
-                { label: "Avg. Rating", value: "4.9", icon: Star },
+                { label: t.landing.yearsExp, value: "12+", icon: Award },
+                { label: t.landing.consultations, value: "5,000+", icon: Users },
+                { label: t.landing.avgRating, value: "4.9", icon: Star },
               ].map((stat) => (
                 <div
                   key={stat.label}
@@ -322,7 +329,7 @@ export function LandingPage() {
                 <Star key={i} className="h-4 w-4 fill-current" />
               ))}
               <span className="ml-2 text-sm text-[var(--faint)]">
-                Rated by 1,200+ clients
+                {t.landing.ratedBy}
               </span>
             </div>
           </motion.div>

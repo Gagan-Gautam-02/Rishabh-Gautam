@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
-import { Fraunces, Inter } from "next/font/google";
+import { Fraunces, Inter, Noto_Sans_Devanagari } from "next/font/google";
 import { AuthProvider } from "@/components/providers/AuthProvider";
+import { LocaleProvider } from "@/components/providers/LocaleProvider";
 import { ToastProvider } from "@/components/providers/ToastProvider";
 import { APP_NAME } from "@/lib/constants";
 import "./globals.css";
@@ -19,6 +20,13 @@ const fraunces = Fraunces({
   display: "swap",
 });
 
+const notoDevanagari = Noto_Sans_Devanagari({
+  variable: "--font-devanagari",
+  subsets: ["devanagari"],
+  weight: ["400", "500", "600", "700"],
+  display: "swap",
+});
+
 export const metadata: Metadata = {
   title: `${APP_NAME} — Astrology Consultations`,
   description:
@@ -33,13 +41,15 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${inter.variable} ${fraunces.variable} h-full antialiased`}
+      className={`${inter.variable} ${fraunces.variable} ${notoDevanagari.variable} h-full antialiased`}
     >
       <body className="flex min-h-full flex-col bg-[var(--bg)] text-[var(--body)]">
-        <AuthProvider>
-          {children}
-          <ToastProvider />
-        </AuthProvider>
+        <LocaleProvider>
+          <AuthProvider>
+            {children}
+            <ToastProvider />
+          </AuthProvider>
+        </LocaleProvider>
       </body>
     </html>
   );
