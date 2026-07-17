@@ -1,36 +1,73 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Cosmic Guide — Astrology Consultation Booking
 
-## Getting Started
+Full-stack booking platform built with **Next.js (App Router)**, **Firebase Auth / Firestore / Storage**, and **Framer Motion**.
 
-First, run the development server:
+## Features
+
+- Public landing page (hero, services, about, contact)
+- Email/password signup & login with role-based access (`user` | `admin`)
+- User dashboard: slot booking, UPI payment screenshot upload, live booking status, chat (after confirmation)
+- Admin dashboard: slot management, users list, notifications, accept/reject bookings, chat inbox
+- Real-time updates via Firestore `onSnapshot`
+
+## Setup
+
+### 1. Install & run
 
 ```bash
+npm install
+cp .env.local.example .env.local
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### 2. Firebase project
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+1. Create a project in [Firebase Console](https://console.firebase.google.com/)
+2. Enable **Authentication → Email/Password**
+3. Create **Firestore** and **Storage**
+4. Copy web app config into `.env.local`
+5. Deploy rules:
 
-## Learn More
+```bash
+firebase deploy --only firestore:rules,storage
+```
 
-To learn more about Next.js, take a look at the following resources:
+Or paste `firestore.rules` and `storage.rules` in the Firebase Console.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+### 3. Create an admin user
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+1. Sign up normally through the app
+2. In Firestore, open `users/{uid}` and set `role` to `"admin"`
+3. Log out and log back in → redirect to `/admin`
 
-## Deploy on Vercel
+### 4. Payment display
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+Set in `.env.local`:
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- `NEXT_PUBLIC_UPI_ID`
+- `NEXT_PUBLIC_CONSULTATION_FEE`
+- `NEXT_PUBLIC_QR_CODE_URL` (default: `/payment-qr.svg` — replace with your real QR image in `/public`)
+
+## Firestore indexes
+
+If Firestore prompts for composite indexes (e.g. `bookings` by `userId` + `createdAt`), click the link in the browser console error to create them.
+
+## Scripts
+
+| Command       | Description        |
+|---------------|--------------------|
+| `npm run dev` | Local development  |
+| `npm run build` | Production build |
+| `npm start`   | Run production     |
+
+## Project structure
+
+```
+src/
+  app/           # Routes: /, /login, /signup, /dashboard, /admin
+  components/    # UI, landing, auth, dashboard, admin, chat
+  lib/           # Firebase, types, booking/chat helpers
+  store/         # Zustand auth store
+```

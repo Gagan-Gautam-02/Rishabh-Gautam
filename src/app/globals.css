@@ -1,26 +1,175 @@
 @import "tailwindcss";
 
+/* ============================================================
+   Design tokens — light "celestial clarity" theme
+   ============================================================ */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* Surfaces */
+  --bg: #f7f5f1;          /* soft ivory page background */
+  --bg-alt: #fbf9f5;      /* slightly warmer alt sections */
+  --surface: #ffffff;     /* cards */
+  --surface-2: #f3f0e9;   /* muted inset / chips */
+
+  /* Ink & text */
+  --ink: #26243b;         /* headings — deep indigo ink */
+  --body: #57544d;        /* body copy — warm gray */
+  --faint: #8c887e;       /* captions / muted */
+
+  /* Accents */
+  --primary: #fcad03;     /* brand gold */
+  --primary-2: #e59c02;   /* hover */
+  --primary-soft: rgba(252, 173, 3, 0.14);
+  --gold: #fcad03;        /* aligned with brand */
+  --gold-ink: #b87a02;    /* gold for text on light (AA) */
+  --gold-soft: rgba(252, 173, 3, 0.16);
+
+  /* Lines & rings */
+  --border: #e8e2d6;      /* warm hairline */
+  --border-strong: #ddd5c5;
+  --ring: rgba(252, 173, 3, 0.28);
+
+  /* Status (desaturated to match palette) */
+  --sage: #4f7a52;
+  --sage-soft: rgba(111, 143, 106, 0.16);
+  --amber: #9a6b1e;
+  --amber-soft: rgba(201, 162, 93, 0.18);
+  --clay: #a8564c;
+  --clay-soft: rgba(180, 105, 95, 0.15);
+
+  /* Elevation */
+  --shadow-sm: 0 1px 2px rgba(38, 36, 59, 0.06);
+  --shadow-md: 0 10px 30px rgba(38, 36, 59, 0.08);
+  --shadow-lg: 0 20px 50px rgba(38, 36, 59, 0.12);
+  --glow: 0 12px 40px rgba(252, 173, 3, 0.22);
+
+  --background: var(--bg);
+  --foreground: var(--ink);
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-background: var(--bg);
+  --color-foreground: var(--ink);
+  --font-sans: var(--font-inter);
+  --font-display: var(--font-fraunces);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html {
+  scroll-behavior: smooth;
+  scrollbar-gutter: stable;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--bg);
+  color: var(--body);
+  font-family: var(--font-inter), system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+.font-display {
+  font-family: var(--font-fraunces), Georgia, serif;
+  letter-spacing: -0.01em;
+}
+
+/* ============================================================
+   Signature motif — constellation texture + celestial divider
+   ============================================================ */
+.constellation {
+  background-image:
+    radial-gradient(1.5px 1.5px at 12% 28%, rgba(252, 173, 3, 0.28), transparent),
+    radial-gradient(1.5px 1.5px at 68% 18%, rgba(252, 173, 3, 0.45), transparent),
+    radial-gradient(1px 1px at 40% 62%, rgba(38, 36, 59, 0.14), transparent),
+    radial-gradient(1.5px 1.5px at 84% 54%, rgba(252, 173, 3, 0.35), transparent),
+    radial-gradient(1px 1px at 24% 82%, rgba(38, 36, 59, 0.12), transparent),
+    radial-gradient(1px 1px at 56% 40%, rgba(252, 173, 3, 0.2), transparent);
+  background-size: 100% 100%;
+}
+
+.divider-celestial {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  color: var(--gold);
+}
+.divider-celestial::before,
+.divider-celestial::after {
+  content: "";
+  height: 1px;
+  width: min(9rem, 22vw);
+  background: linear-gradient(
+    to right,
+    transparent,
+    var(--border-strong),
+    transparent
+  );
+}
+
+/* Soft radial glow behind CTAs / portrait */
+.glow-ring {
+  position: relative;
+}
+.glow-ring::before {
+  content: "";
+  position: absolute;
+  inset: -18%;
+  background: radial-gradient(
+    circle,
+    rgba(252, 173, 3, 0.22),
+    transparent 68%
+  );
+  z-index: -1;
+}
+
+/* ============================================================
+   Reusable primitives
+   ============================================================ */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 1rem;
+  box-shadow: var(--shadow-sm);
+}
+
+.eyebrow {
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--gold-ink);
+}
+
+::selection {
+  background: rgba(46, 42, 92, 0.16);
+  color: var(--ink);
+}
+
+/* Focus visibility for accessibility */
+:where(a, button, input, textarea, [tabindex]):focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+  border-radius: 0.4rem;
+}
+
+/* Custom scrollbars in scroll regions */
+.scroll-soft::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+.scroll-soft::-webkit-scrollbar-thumb {
+  background: var(--border-strong);
+  border-radius: 999px;
+}
+
+/* ============================================================
+   Reduced motion
+   ============================================================ */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
 }
