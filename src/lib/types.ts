@@ -36,6 +36,20 @@ export interface Booking {
   dob?: string;
   birthPlace?: string;
   birthTime?: string;
+  /** Match Horoscope — bride details */
+  brideName?: string;
+  brideAge?: string;
+  brideDob?: string;
+  brideBirthPlace?: string;
+  brideBirthTime?: string;
+  /** Match Horoscope — groom details */
+  groomName?: string;
+  groomAge?: string;
+  groomDob?: string;
+  groomBirthPlace?: string;
+  groomBirthTime?: string;
+  /** Optional user note / special question */
+  note?: string;
   createdAt: number;
 }
 

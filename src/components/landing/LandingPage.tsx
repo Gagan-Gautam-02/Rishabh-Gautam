@@ -6,78 +6,42 @@ import { motion, useReducedMotion } from "framer-motion";
 import type { LucideIcon } from "lucide-react";
 import {
   Activity,
+  ArrowRight,
   Atom,
   Award,
-  Baby,
-  BookMarked,
-  BookOpen,
   Briefcase,
-  Calendar,
-  CalendarDays,
-  CircleDot,
-  ClipboardCheck,
-  Clock,
-  Crosshair,
+  CheckCircle2,
+  FileCheck,
   FileText,
-  Gem,
   Hash,
   Heart,
   HeartHandshake,
-  HelpCircle,
   Home,
-  IndianRupee,
-  Languages,
-  Laptop,
-  Library,
-  Lightbulb,
-  Monitor,
-  Orbit,
+  Lock,
   Phone,
+  Shield,
+  ShieldCheck,
   Sparkles,
   Star,
-  Sun,
-  Tv,
+  UserCheck,
   Users,
 } from "lucide-react";
 import { Button } from "@/components/ui/Button";
-import { ASTROLOGER_NAME, FREE_FEATURES, SERVICES } from "@/lib/constants";
+import { SERVICES } from "@/lib/constants";
 import { useAuthStore } from "@/store/authStore";
 import { useT } from "@/store/localeStore";
 
-const serviceIconMap = { Briefcase, Heart, Activity, Home, Hash, Sparkles };
-
-/** YinYang / Snake aren't in lucide — use close substitutes. */
-const freeIconMap: Record<string, LucideIcon> = {
+const serviceIconMap: Record<string, LucideIcon> = {
   Sparkles,
   HeartHandshake,
-  Users,
-  HelpCircle,
-  Monitor,
-  Briefcase,
-  BookOpen,
-  ClipboardCheck,
-  Phone,
-  IndianRupee,
-  Calendar,
-  BookMarked,
-  Orbit,
-  CalendarDays,
-  Baby,
-  Atom,
+  Home,
   FileText,
-  Laptop,
-  Languages,
-  Hash,
-  Star,
-  Lightbulb,
+  Atom,
+  Phone,
+  Briefcase,
   Heart,
-  Gem,
-  Crosshair,
-  CircleDot,
-  Sun,
-  Clock,
-  Tv,
-  Library,
+  Activity,
+  Hash,
 };
 
 export function LandingPage() {
@@ -151,76 +115,7 @@ export function LandingPage() {
         </div>
       </section>
 
-      {/* Free Horoscope & Astrology Services */}
-      <section
-        id="free-tools"
-        className="border-y border-[var(--border)] bg-[var(--bg-alt)]"
-      >
-        <div className="mx-auto max-w-6xl px-4 py-16 sm:px-6 sm:py-20">
-          <motion.div
-            initial={{ opacity: 0, y: 16 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, amount: 0.4 }}
-            transition={{ duration: 0.45 }}
-            className="mb-4 text-center"
-          >
-            <p className="eyebrow mb-3">{t.landing.freeEyebrow}</p>
-            <h2 className="font-display text-[clamp(1.5rem,3.5vw,2.25rem)] font-semibold text-[var(--ink)]">
-              {t.landing.freeTitle}
-            </h2>
-          </motion.div>
-          <div className="divider-celestial mb-10">
-            <Star className="h-3.5 w-3.5 fill-current" />
-          </div>
 
-          <div className="overflow-hidden rounded-2xl border border-[var(--border)] bg-[var(--border)] shadow-[var(--shadow-sm)]">
-            <div className="grid grid-cols-1 gap-px sm:grid-cols-2 lg:grid-cols-4">
-              {FREE_FEATURES.map((feature, i) => {
-                const Icon = freeIconMap[feature.icon] ?? Sparkles;
-                const featured =
-                  "featured" in feature && feature.featured === true;
-                const href = featured ? bookHref : "/#services";
-                const label =
-                  t.freeFeatures[feature.title] ?? feature.title;
-                return (
-                  <motion.div
-                    key={feature.title}
-                    initial={{ opacity: 0 }}
-                    whileInView={{ opacity: 1 }}
-                    viewport={{ once: true, amount: 0.15 }}
-                    transition={{
-                      delay: Math.min(i * 0.015, 0.3),
-                      duration: 0.3,
-                    }}
-                  >
-                    <Link
-                      href={href}
-                      className={`flex min-h-[56px] items-center gap-3 px-4 py-3.5 transition-colors ${
-                        featured
-                          ? "bg-[var(--primary-soft)] hover:bg-[var(--gold-soft)]"
-                          : "bg-[var(--surface)] hover:bg-[var(--bg-alt)]"
-                      }`}
-                    >
-                      <span
-                        className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg ${
-                          featured
-                            ? "bg-[var(--primary)] text-[var(--ink)]"
-                            : "bg-[var(--gold-soft)] text-[var(--gold-ink)]"
-                        }`}
-                      >
-                        <Icon className="h-4 w-4" strokeWidth={1.75} />
-                      </span>
-                      <span className="text-sm font-medium leading-snug text-[var(--ink)]">
-                        {label}
-                      </span>
-                    </Link>
-                  </motion.div>
-                );
-              })}
-            </div>
-          </div>
-        </div>
-      </section>
 
       {/* Services */}
       <section id="services" className="mx-auto max-w-6xl px-4 py-20 sm:px-6 sm:py-24">
@@ -240,37 +135,154 @@ export function LandingPage() {
           <Star className="h-3.5 w-3.5 fill-current" />
         </div>
 
-        <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="space-y-12 sm:space-y-16 lg:space-y-20">
           {SERVICES.map((service, i) => {
-            const Icon = serviceIconMap[service.icon];
-            const localized = t.services[service.title] ?? service;
+            const Icon = serviceIconMap[service.icon] ?? Sparkles;
+            const localized = (t.services[service.title] as
+              | { title?: string; description?: string; highlights?: string[] }
+              | undefined) ?? service;
+            const title = localized.title ?? service.title;
+            const description = localized.description ?? service.detailedDescription;
+            const highlights = localized.highlights ?? service.highlights;
+            const isReverse = i % 2 === 1;
+
             return (
               <motion.div
                 key={service.title}
-                initial={{ opacity: 0, y: 24 }}
+                initial={{ opacity: 0, y: 30 }}
                 whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true, amount: 0.3 }}
-                transition={{ delay: i * 0.06, duration: 0.45 }}
-                whileHover={reduce ? undefined : { y: -6 }}
-                className="group rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-6 shadow-[var(--shadow-sm)] transition-shadow duration-300 hover:border-[var(--gold)]/50 hover:shadow-[var(--shadow-lg)]"
+                viewport={{ once: true, amount: 0.2 }}
+                transition={{ duration: 0.5, delay: 0.05 }}
+                className={`group flex flex-col gap-8 rounded-3xl border border-[var(--border)] bg-[var(--surface)] p-6 sm:p-8 lg:p-10 shadow-[var(--shadow-md)] transition-all duration-500 hover:border-[var(--gold)]/50 hover:shadow-[var(--shadow-xl)] lg:flex-row lg:items-center ${
+                  isReverse ? "lg:flex-row-reverse" : ""
+                }`}
               >
-                <div className="mb-5 inline-flex rounded-xl bg-[var(--primary-soft)] p-3 text-[var(--primary)] transition-colors duration-300 group-hover:bg-[var(--gold-soft)] group-hover:text-[var(--gold-ink)]">
-                  <Icon className="h-5 w-5" />
+                {/* Service Image Side */}
+                <div className="relative aspect-[16/10] w-full overflow-hidden rounded-2xl border border-[var(--border)] bg-[var(--surface-2)] shadow-inner lg:w-1/2">
+                  <Image
+                    src={service.image}
+                    alt={title}
+                    fill
+                    className="object-cover transition-transform duration-700 group-hover:scale-105"
+                    sizes="(max-width: 1024px) 100vw, 50vw"
+                    unoptimized
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-60" />
+                  <div className="absolute bottom-3 left-3 flex items-center gap-2 rounded-full border border-white/20 bg-black/40 px-3.5 py-1.5 backdrop-blur-md">
+                    <Icon className="h-4 w-4 text-[var(--gold)]" />
+                    <span className="text-xs font-medium text-white/90">
+                      {t.landing.servicesEyebrow} #{i + 1}
+                    </span>
+                  </div>
                 </div>
-                <h3 className="font-display text-lg font-semibold text-[var(--ink)]">
-                  {localized.title}
-                </h3>
-                <p className="mt-2 text-sm leading-relaxed text-[var(--faint)]">
-                  {localized.description}
-                </p>
+
+                {/* Content Side */}
+                <div className="flex flex-col justify-center space-y-4 lg:w-1/2">
+                  <div className="flex items-center gap-3">
+                    <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[var(--primary-soft)] text-[var(--primary)] transition-colors duration-300 group-hover:bg-[var(--gold-soft)] group-hover:text-[var(--gold-ink)]">
+                      <Icon className="h-5 w-5" />
+                    </span>
+                    <h3 className="font-display text-2xl font-semibold text-[var(--ink)] sm:text-3xl">
+                      {title}
+                    </h3>
+                  </div>
+
+                  <p className="text-base leading-relaxed text-[var(--body)] sm:text-lg">
+                    {description}
+                  </p>
+
+                  {highlights && highlights.length > 0 && (
+                    <ul className="my-2 space-y-2.5">
+                      {highlights.map((item, idx) => (
+                        <li key={idx} className="flex items-center gap-2.5 text-sm font-medium text-[var(--ink)]">
+                          <CheckCircle2 className="h-4 w-4 shrink-0 text-[var(--gold-ink)]" />
+                          <span>{item}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+
+                  <div className="pt-2">
+                    <Link
+                      href={bookHref}
+                      className="inline-flex items-center gap-2.5 rounded-xl bg-[var(--primary)] px-6 py-3 text-sm font-semibold text-[var(--ink)] shadow-[var(--shadow-sm)] transition-all duration-300 hover:bg-[var(--gold-soft)] hover:shadow-[var(--shadow-md)] hover:scale-[1.02]"
+                    >
+                      {t.landing.bookSession}
+                      <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
+                    </Link>
+                  </div>
+                </div>
               </motion.div>
             );
           })}
         </div>
       </section>
 
+      {/* 100% Privacy & Anonymity Section */}
+      <section id="privacy" className="border-t border-[var(--border)] bg-[var(--bg-alt)] py-20 sm:py-24">
+        <div className="mx-auto max-w-6xl px-4 sm:px-6">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, amount: 0.4 }}
+            transition={{ duration: 0.5 }}
+            className="mb-12 text-center"
+          >
+            <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-[var(--gold)]/30 bg-[var(--gold-soft)] px-4 py-1.5 text-xs font-semibold text-[var(--gold-ink)]">
+              <ShieldCheck className="h-4 w-4" />
+              <span>{t.privacy.eyebrow}</span>
+            </div>
+            <h2 className="font-display text-[clamp(1.75rem,4vw,2.5rem)] font-semibold text-[var(--ink)]">
+              {t.privacy.title}
+            </h2>
+            <p className="mx-auto mt-3 max-w-2xl text-base text-[var(--body)]">
+              {t.privacy.subtitle}
+            </p>
+          </motion.div>
+
+          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            {[
+              {
+                title: t.privacy.feature1Title,
+                desc: t.privacy.feature1Desc,
+                icon: UserCheck,
+              },
+              {
+                title: t.privacy.feature2Title,
+                desc: t.privacy.feature2Desc,
+                icon: FileCheck,
+              },
+              {
+                title: t.privacy.feature3Title,
+                desc: t.privacy.feature3Desc,
+                icon: Shield,
+              },
+            ].map((item, idx) => (
+              <motion.div
+                key={item.title}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, amount: 0.3 }}
+                transition={{ duration: 0.4, delay: idx * 0.1 }}
+                className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-6 shadow-[var(--shadow-sm)] transition-shadow duration-300 hover:shadow-[var(--shadow-md)]"
+              >
+                <div className="mb-4 inline-flex rounded-xl bg-[var(--gold-soft)] p-3 text-[var(--gold-ink)]">
+                  <item.icon className="h-6 w-6" />
+                </div>
+                <h3 className="font-display text-lg font-semibold text-[var(--ink)]">
+                  {item.title}
+                </h3>
+                <p className="mt-2 text-sm leading-relaxed text-[var(--body)]">
+                  {item.desc}
+                </p>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* About */}
-      <section id="about" className="border-y border-[var(--border)] bg-[var(--bg-alt)]">
+      <section id="about" className="border-y border-[var(--border)] bg-[var(--surface)]">
         <div className="mx-auto grid max-w-6xl items-center gap-12 px-4 py-20 sm:px-6 sm:py-24 md:grid-cols-2">
           <motion.div
             initial={{ opacity: 0, x: -24 }}
@@ -282,10 +294,10 @@ export function LandingPage() {
             <div className="constellation absolute inset-0 opacity-50" />
             <div className="relative flex h-full flex-col items-center justify-center p-8 text-center">
               <div className="mb-4 flex h-28 w-28 items-center justify-center rounded-full border-2 border-[var(--gold)]/60 bg-white/5 backdrop-blur">
-                <span className="font-display text-4xl text-[var(--gold)]">RG</span>
+                <Sparkles className="h-12 w-12 text-[var(--gold)]" />
               </div>
-              <p className="font-display text-2xl text-white">{ASTROLOGER_NAME}</p>
-              <p className="mt-1 text-sm text-white/60">{t.landing.vedicAstrologer}</p>
+              <p className="font-display text-2xl text-white">{t.landing.vedicAstrologer}</p>
+              <p className="mt-1 text-xs uppercase tracking-widest text-white/60">Astro Bodh</p>
             </div>
           </motion.div>
 
@@ -300,7 +312,7 @@ export function LandingPage() {
               {t.landing.aboutTitle}
             </h2>
             <p className="mt-5 text-[15px] leading-relaxed text-[var(--body)]">
-              {tf(t.landing.aboutBio, { name: ASTROLOGER_NAME })}
+              {t.landing.aboutBio}
             </p>
 
             <div className="mt-8 grid grid-cols-3 gap-4">

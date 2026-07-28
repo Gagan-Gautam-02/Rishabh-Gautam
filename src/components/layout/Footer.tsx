@@ -24,7 +24,7 @@ export function Footer() {
             </span>
           </div>
           <p className="text-sm leading-relaxed text-[var(--faint)]">
-            {tf(t.footer.blurb, { name: ASTROLOGER_NAME })}
+            {t.footer.blurb}
           </p>
         </div>
 

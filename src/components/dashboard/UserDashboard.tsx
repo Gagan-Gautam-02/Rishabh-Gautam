@@ -57,6 +57,7 @@ import { subscribeConsultationFee } from "@/lib/settings";
 import { isMeetJoinUnlocked } from "@/lib/meet";
 import {
   createBooking,
+  createMatchHoroscopeBooking,
   createServiceBooking,
   subscribeSlots,
   subscribeUserBookings,
@@ -121,6 +122,12 @@ export function UserDashboard() {
     time: "",
   });
   const [birthErrors, setBirthErrors] = useState<Record<string, string>>({});
+  const [matchDetails, setMatchDetails] = useState({
+    brideName: "", brideAge: "", brideDob: "", brideBirthPlace: "", brideBirthTime: "",
+    groomName: "", groomAge: "", groomDob: "", groomBirthPlace: "", groomBirthTime: "",
+  });
+  const [matchErrors, setMatchErrors] = useState<Record<string, string>>({});
+  const [serviceNote, setServiceNote] = useState("");
   const [supportOpen, setSupportOpen] = useState(false);
   const [paidChatOpen, setPaidChatOpen] = useState(false);
 
@@ -225,13 +232,11 @@ export function UserDashboard() {
     }
     setSelectedService(title);
     setServiceStep("form");
-    setBirthDetails({
-      name: profile?.name ?? "",
-      dob: "",
-      place: profile?.city ?? "",
-      time: "",
-    });
+    setBirthDetails({ name: profile?.name ?? "", dob: "", place: profile?.city ?? "", time: "" });
     setBirthErrors({});
+    setMatchDetails({ brideName: "", brideAge: "", brideDob: "", brideBirthPlace: "", brideBirthTime: "", groomName: "", groomAge: "", groomDob: "", groomBirthPlace: "", groomBirthTime: "" });
+    setMatchErrors({});
+    setServiceNote("");
     handleFile(null);
   }
 
@@ -239,7 +244,51 @@ export function UserDashboard() {
     setSelectedService(null);
     setServiceStep("form");
     setBirthErrors({});
+    setMatchErrors({});
+    setServiceNote("");
     handleFile(null);
+  }
+
+  function continueMatchToPayment() {
+    const e: Record<string, string> = {};
+    if (!matchDetails.brideName.trim()) e.brideName = "Required";
+    if (!matchDetails.brideAge.trim()) e.brideAge = "Required";
+    if (!matchDetails.brideDob) e.brideDob = "Required";
+    if (!matchDetails.brideBirthPlace.trim()) e.brideBirthPlace = "Required";
+    if (!matchDetails.brideBirthTime) e.brideBirthTime = "Required";
+    if (!matchDetails.groomName.trim()) e.groomName = "Required";
+    if (!matchDetails.groomAge.trim()) e.groomAge = "Required";
+    if (!matchDetails.groomDob) e.groomDob = "Required";
+    if (!matchDetails.groomBirthPlace.trim()) e.groomBirthPlace = "Required";
+    if (!matchDetails.groomBirthTime) e.groomBirthTime = "Required";
+    setMatchErrors(e);
+    if (Object.keys(e).length > 0) { toast.error("Please fill all fields"); return; }
+    setServiceStep("payment");
+  }
+
+  async function submitMatchHoroscope() {
+    if (!user || !profile || !file) { toast.error(t.dashboard.uploadScreenshot); return; }
+    setSubmitting(true);
+    try {
+      const screenshotUrl = await uploadPaymentScreenshot(user.uid, file);
+      await createMatchHoroscopeBooking({
+        userId: user.uid, userName: profile.name, userPhone: profile.phone,
+        amount: consultationFee, screenshotUrl,
+        ...matchDetails,
+        consultationDate: selectedSlot?.date,
+        consultationTime: selectedSlot?.time,
+        slotId: selectedSlot?.id,
+        note: serviceNote.trim() || undefined,
+      });
+      toast.success(t.dashboard.requestSubmitted);
+      resetServiceRequest();
+      setTab("status");
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Could not submit";
+      toast.error(msg.slice(0, 120));
+    } finally {
+      setSubmitting(false);
+    }
   }
 
   function continueToPayment() {
@@ -275,6 +324,10 @@ export function UserDashboard() {
         dob: birthDetails.dob,
         birthPlace: birthDetails.place.trim(),
         birthTime: birthDetails.time,
+        consultationDate: selectedSlot?.date,
+        consultationTime: selectedSlot?.time,
+        slotId: selectedSlot?.id,
+        note: serviceNote.trim() || undefined,
       });
       toast.success(t.dashboard.requestSubmitted);
       resetServiceRequest();
@@ -358,9 +411,9 @@ export function UserDashboard() {
                 </div>
                 <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
                   {DASHBOARD_SERVICES.map((service, i) => {
-                    const Icon = serviceIcons[service.icon] ?? Sparkles;
-                    const localized =
-                      t.dashboardServices[service.title] ?? service;
+                    const trans = t.dashboardServices[service.title as keyof typeof t.dashboardServices];
+                    const displayTitle = trans?.title ?? service.title;
+                    const displayDesc = trans?.description ?? service.description;
                     return (
                       <motion.button
                         key={service.title}
@@ -373,21 +426,33 @@ export function UserDashboard() {
                         }}
                         whileHover={reduce ? undefined : { y: -3 }}
                         onClick={() => openService(service.title, service.action)}
-                        className="flex min-h-[168px] flex-col items-center justify-center rounded-2xl border border-[var(--border)] bg-[var(--surface)] px-5 py-6 text-center shadow-[var(--shadow-sm)] transition-colors hover:border-[var(--gold)]/50 hover:shadow-[var(--shadow-md)]"
+                        className="flex flex-col overflow-hidden rounded-2xl border border-[var(--border)] bg-[var(--surface)] text-left shadow-[var(--shadow-sm)] transition-all duration-300 hover:border-[var(--gold)]/50 hover:shadow-[var(--shadow-md)]"
                       >
-                        <p className="text-sm font-semibold text-[var(--ink)]">
-                          {localized.title}
-                        </p>
-                        <span className="my-4 flex h-12 w-12 items-center justify-center rounded-xl bg-[var(--gold-soft)] text-[var(--gold-ink)]">
-                          <Icon className="h-6 w-6" strokeWidth={1.6} />
+                        {/* Service image */}
+                        <span className="relative block h-36 w-full overflow-hidden bg-[var(--surface-2)]">
+                          <Image
+                            src={"image" in service ? service.image : ""}
+                            alt={displayTitle}
+                            fill
+                            className="object-cover transition-transform duration-500 group-hover:scale-105"
+                            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                            unoptimized
+                          />
                         </span>
-                        <p className="text-xs leading-relaxed text-[var(--faint)]">
-                          {localized.description}
-                        </p>
+                        {/* Text */}
+                        <span className="flex flex-col gap-1 px-4 py-3.5">
+                          <span className="text-sm font-semibold text-[var(--ink)]">
+                            {displayTitle}
+                          </span>
+                          <span className="text-xs leading-relaxed text-[var(--faint)]">
+                            {displayDesc}
+                          </span>
+                        </span>
                       </motion.button>
                     );
                   })}
                 </div>
+
               </>
             ) : (
               <div className="space-y-6">
@@ -407,132 +472,269 @@ export function UserDashboard() {
                 <div>
                   <p className="eyebrow mb-1">{t.dashboard.serviceRequest}</p>
                   <h2 className="font-display text-xl font-semibold text-[var(--ink)]">
-                    {t.dashboardServices[selectedService]?.title ?? selectedService}
+                    {t.dashboardServices[selectedService as keyof typeof t.dashboardServices]?.title ?? selectedService}
                   </h2>
                 </div>
 
-                {serviceStep === "form" && (
+                {/* ── Match Horoscope: Bride + Groom form ── */}
+                {selectedService === "Match Horoscope" && serviceStep === "form" && (
                   <section className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-5 shadow-[var(--shadow-sm)] sm:p-6">
-                    <h3 className="mb-4 flex items-center gap-2 font-display text-lg font-semibold text-[var(--ink)]">
-                      <span className="flex h-6 w-6 items-center justify-center rounded-full bg-[var(--primary)] text-xs text-[var(--ink)]">
-                        1
-                      </span>
-                      {t.dashboard.birthDetails}
+                    <h3 className="mb-5 flex items-center gap-2 font-display text-lg font-semibold text-[var(--ink)]">
+                      <span className="flex h-6 w-6 items-center justify-center rounded-full bg-[var(--primary)] text-xs text-[var(--ink)]">1</span>
+                      {t.dashboard.brideGroomDetails}
                     </h3>
-                    <div className="grid gap-4 sm:grid-cols-2">
-                      <Input
-                        label={t.dashboard.name}
-                        value={birthDetails.name}
-                        error={birthErrors.name}
-                        onChange={(e) =>
-                          setBirthDetails({ ...birthDetails, name: e.target.value })
-                        }
-                      />
-                      <Input
-                        label={t.dashboard.dob}
-                        type="date"
-                        value={birthDetails.dob}
-                        error={birthErrors.dob}
-                        onChange={(e) =>
-                          setBirthDetails({ ...birthDetails, dob: e.target.value })
-                        }
-                      />
-                      <Input
-                        label={t.dashboard.place}
-                        value={birthDetails.place}
-                        error={birthErrors.place}
-                        onChange={(e) =>
-                          setBirthDetails({
-                            ...birthDetails,
-                            place: e.target.value,
-                          })
-                        }
-                      />
-                      <Input
-                        label={t.dashboard.time}
-                        type="time"
-                        value={birthDetails.time}
-                        error={birthErrors.time}
-                        onChange={(e) =>
-                          setBirthDetails({
-                            ...birthDetails,
-                            time: e.target.value,
-                          })
-                        }
+
+                    {/* Bride */}
+                    <p className="eyebrow mb-3">{t.dashboard.bride}</p>
+                    <div className="mb-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                      <Input label={t.dashboard.name} value={matchDetails.brideName} error={matchErrors.brideName}
+                        onChange={(e) => setMatchDetails({ ...matchDetails, brideName: e.target.value })} />
+                      <Input label="Age" type="number" value={matchDetails.brideAge} error={matchErrors.brideAge}
+                        onChange={(e) => setMatchDetails({ ...matchDetails, brideAge: e.target.value })} />
+                      <Input label={t.dashboard.dob} type="date" value={matchDetails.brideDob} error={matchErrors.brideDob}
+                        onChange={(e) => setMatchDetails({ ...matchDetails, brideDob: e.target.value })} />
+                      <Input label={t.dashboard.place} value={matchDetails.brideBirthPlace} error={matchErrors.brideBirthPlace}
+                        onChange={(e) => setMatchDetails({ ...matchDetails, brideBirthPlace: e.target.value })} />
+                      <Input label={t.dashboard.time} type="time" value={matchDetails.brideBirthTime} error={matchErrors.brideBirthTime}
+                        onChange={(e) => setMatchDetails({ ...matchDetails, brideBirthTime: e.target.value })} />
+                    </div>
+
+                    {/* Groom */}
+                    <p className="eyebrow mb-3">{t.dashboard.groom}</p>
+                    <div className="mb-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                      <Input label={t.dashboard.name} value={matchDetails.groomName} error={matchErrors.groomName}
+                        onChange={(e) => setMatchDetails({ ...matchDetails, groomName: e.target.value })} />
+                      <Input label="Age" type="number" value={matchDetails.groomAge} error={matchErrors.groomAge}
+                        onChange={(e) => setMatchDetails({ ...matchDetails, groomAge: e.target.value })} />
+                      <Input label={t.dashboard.dob} type="date" value={matchDetails.groomDob} error={matchErrors.groomDob}
+                        onChange={(e) => setMatchDetails({ ...matchDetails, groomDob: e.target.value })} />
+                      <Input label={t.dashboard.place} value={matchDetails.groomBirthPlace} error={matchErrors.groomBirthPlace}
+                        onChange={(e) => setMatchDetails({ ...matchDetails, groomBirthPlace: e.target.value })} />
+                      <Input label={t.dashboard.time} type="time" value={matchDetails.groomBirthTime} error={matchErrors.groomBirthTime}
+                        onChange={(e) => setMatchDetails({ ...matchDetails, groomBirthTime: e.target.value })} />
+                    </div>
+
+                    {/* Optional Consultation Slot Selection */}
+                    <div className="mb-6 rounded-xl border border-[var(--border)] bg-[var(--bg-alt)] p-4">
+                      <p className="font-semibold text-sm text-[var(--ink)] mb-2 flex items-center gap-2">
+                        📅 Select Preferred Meeting Slot (Optional)
+                      </p>
+                      {availableDates.length > 0 ? (
+                        <div className="space-y-3">
+                          <div className="flex flex-wrap gap-2">
+                            {availableDates.map((date) => (
+                              <button
+                                key={date}
+                                type="button"
+                                onClick={() => { setSelectedDate(date); setSelectedSlot(null); }}
+                                className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors ${
+                                  selectedDate === date
+                                    ? "border-[var(--primary)] bg-[var(--primary)] text-[var(--ink)]"
+                                    : "border-[var(--border)] bg-[var(--surface)] text-[var(--body)]"
+                                }`}
+                              >
+                                {date}
+                              </button>
+                            ))}
+                          </div>
+                          {selectedDate && timesForDate.length > 0 && (
+                            <div className="flex flex-wrap gap-2 pt-2 border-t border-[var(--border)]">
+                              {timesForDate.map((slot) => (
+                                <button
+                                  key={slot.id}
+                                  type="button"
+                                  onClick={() => setSelectedSlot(slot)}
+                                  className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors ${
+                                    selectedSlot?.id === slot.id
+                                      ? "border-[var(--gold)] bg-[var(--gold)] text-[var(--ink)]"
+                                      : "border-[var(--border)] bg-[var(--surface)] text-[var(--body)]"
+                                  }`}
+                                >
+                                  {slot.time}
+                                </button>
+                              ))}
+                            </div>
+                          )}
+                          {selectedSlot && (
+                            <p className="text-xs text-[var(--gold-ink)] font-semibold mt-1">
+                              Selected Slot: {selectedSlot.date} at {selectedSlot.time}
+                            </p>
+                          )}
+                        </div>
+                      ) : (
+                        <p className="text-xs text-[var(--faint)]">
+                          No fixed slots available right now. Astrologer will assign meeting time upon confirmation.
+                        </p>
+                      )}
+                    </div>
+
+                    {/* Note / Specific Questions */}
+                    <div className="mb-6">
+                      <label className="mb-1.5 block text-sm font-medium text-[var(--ink)]">
+                        Special Note / Questions (Optional)
+                      </label>
+                      <textarea
+                        rows={2}
+                        value={serviceNote}
+                        onChange={(e) => setServiceNote(e.target.value)}
+                        placeholder="Any specific questions or details for the astrologer..."
+                        className="w-full rounded-xl border border-[var(--border-strong)] bg-[var(--surface)] px-4 py-2.5 text-sm text-[var(--ink)] placeholder:text-[var(--faint)] outline-none focus:border-[var(--primary)] focus:ring-4 focus:ring-[var(--ring)]"
                       />
                     </div>
-                    <Button onClick={continueToPayment} className="mt-6 w-full sm:w-auto">
+
+                    <Button onClick={continueMatchToPayment} className="w-full sm:w-auto">
                       {t.dashboard.continuePayment}
                     </Button>
                   </section>
                 )}
 
+                {/* ── Other services: single birth details form ── */}
+                {selectedService !== "Match Horoscope" && serviceStep === "form" && (
+                  <section className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-5 shadow-[var(--shadow-sm)] sm:p-6">
+                    <h3 className="mb-4 flex items-center gap-2 font-display text-lg font-semibold text-[var(--ink)]">
+                      <span className="flex h-6 w-6 items-center justify-center rounded-full bg-[var(--primary)] text-xs text-[var(--ink)]">1</span>
+                      {t.dashboard.birthDetails}
+                    </h3>
+                    <div className="grid gap-4 sm:grid-cols-2">
+                      <Input label={t.dashboard.name} value={birthDetails.name} error={birthErrors.name}
+                        onChange={(e) => setBirthDetails({ ...birthDetails, name: e.target.value })} />
+                      <Input label={t.dashboard.dob} type="date" value={birthDetails.dob} error={birthErrors.dob}
+                        onChange={(e) => setBirthDetails({ ...birthDetails, dob: e.target.value })} />
+                      <Input label={t.dashboard.place} value={birthDetails.place} error={birthErrors.place}
+                        onChange={(e) => setBirthDetails({ ...birthDetails, place: e.target.value })} />
+                      <Input label={t.dashboard.time} type="time" value={birthDetails.time} error={birthErrors.time}
+                        onChange={(e) => setBirthDetails({ ...birthDetails, time: e.target.value })} />
+                    </div>
+
+                    {/* Optional Consultation Slot Selection */}
+                    <div className="mt-4 mb-4 rounded-xl border border-[var(--border)] bg-[var(--bg-alt)] p-4">
+                      <p className="font-semibold text-sm text-[var(--ink)] mb-2 flex items-center gap-2">
+                        📅 Select Preferred Meeting Slot (Optional)
+                      </p>
+                      {availableDates.length > 0 ? (
+                        <div className="space-y-3">
+                          <div className="flex flex-wrap gap-2">
+                            {availableDates.map((date) => (
+                              <button
+                                key={date}
+                                type="button"
+                                onClick={() => { setSelectedDate(date); setSelectedSlot(null); }}
+                                className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors ${
+                                  selectedDate === date
+                                    ? "border-[var(--primary)] bg-[var(--primary)] text-[var(--ink)]"
+                                    : "border-[var(--border)] bg-[var(--surface)] text-[var(--body)]"
+                                }`}
+                              >
+                                {date}
+                              </button>
+                            ))}
+                          </div>
+                          {selectedDate && timesForDate.length > 0 && (
+                            <div className="flex flex-wrap gap-2 pt-2 border-t border-[var(--border)]">
+                              {timesForDate.map((slot) => (
+                                <button
+                                  key={slot.id}
+                                  type="button"
+                                  onClick={() => setSelectedSlot(slot)}
+                                  className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors ${
+                                    selectedSlot?.id === slot.id
+                                      ? "border-[var(--gold)] bg-[var(--gold)] text-[var(--ink)]"
+                                      : "border-[var(--border)] bg-[var(--surface)] text-[var(--body)]"
+                                  }`}
+                                >
+                                  {slot.time}
+                                </button>
+                              ))}
+                            </div>
+                          )}
+                          {selectedSlot && (
+                            <p className="text-xs text-[var(--gold-ink)] font-semibold mt-1">
+                              Selected Slot: {selectedSlot.date} at {selectedSlot.time}
+                            </p>
+                          )}
+                        </div>
+                      ) : (
+                        <p className="text-xs text-[var(--faint)]">
+                          No fixed slots available right now. Astrologer will assign meeting time upon confirmation.
+                        </p>
+                      )}
+                    </div>
+
+                    {/* Note / Specific Questions */}
+                    <div className="mb-6">
+                      <label className="mb-1.5 block text-sm font-medium text-[var(--ink)]">
+                        Special Note / Questions (Optional)
+                      </label>
+                      <textarea
+                        rows={2}
+                        value={serviceNote}
+                        onChange={(e) => setServiceNote(e.target.value)}
+                        placeholder="Any specific questions or details for the astrologer..."
+                        className="w-full rounded-xl border border-[var(--border-strong)] bg-[var(--surface)] px-4 py-2.5 text-sm text-[var(--ink)] placeholder:text-[var(--faint)] outline-none focus:border-[var(--primary)] focus:ring-4 focus:ring-[var(--ring)]"
+                      />
+                    </div>
+
+                    <Button onClick={continueToPayment} className="w-full sm:w-auto">
+                      {t.dashboard.continuePayment}
+                    </Button>
+                  </section>
+                )}
+
+                {/* ── Payment step (shared) ── */}
                 {serviceStep === "payment" && (
                   <section className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-5 shadow-[var(--shadow-sm)] sm:p-6">
                     <h3 className="mb-1 flex items-center gap-2 font-display text-lg font-semibold text-[var(--ink)]">
-                      <span className="flex h-6 w-6 items-center justify-center rounded-full bg-[var(--primary)] text-xs text-[var(--ink)]">
-                        2
-                      </span>
+                      <span className="flex h-6 w-6 items-center justify-center rounded-full bg-[var(--primary)] text-xs text-[var(--ink)]">2</span>
                       {t.dashboard.payment}
                     </h3>
-                    <p className="mb-4 text-sm text-[var(--faint)]">
-                      Pay ₹{consultationFee} via UPI, then upload the screenshot
-                    </p>
+                    <p className="mb-4 text-sm text-[var(--faint)]">Pay ₹{consultationFee} via UPI, then upload the screenshot</p>
+
+                    {/* Summary */}
                     <div className="mb-5 rounded-xl border border-[var(--border)] bg-[var(--bg-alt)] px-4 py-3 text-sm text-[var(--body)]">
-                      <p>
-                        <span className="text-[var(--faint)]">Name:</span>{" "}
-                        {birthDetails.name}
-                      </p>
-                      <p className="mt-1">
-                        <span className="text-[var(--faint)]">DOB:</span>{" "}
-                        {birthDetails.dob} · {birthDetails.time}
-                      </p>
-                      <p className="mt-1">
-                        <span className="text-[var(--faint)]">Place:</span>{" "}
-                        {birthDetails.place}
-                      </p>
+                      {selectedSlot && (
+                        <p className="mb-2 pb-2 border-b border-[var(--border)] text-xs text-[var(--gold-ink)] font-semibold">
+                          📅 Meeting Consultation: {selectedSlot.date} at {selectedSlot.time}
+                        </p>
+                      )}
+                      {selectedService === "Match Horoscope" ? (
+                        <>
+                          <p><span className="text-[var(--faint)]">Bride:</span> {matchDetails.brideName}, Age {matchDetails.brideAge}, DOB {matchDetails.brideDob} · {matchDetails.brideBirthTime}</p>
+                          <p className="mt-1"><span className="text-[var(--faint)]">Place:</span> {matchDetails.brideBirthPlace}</p>
+                          <p className="mt-2"><span className="text-[var(--faint)]">Groom:</span> {matchDetails.groomName}, Age {matchDetails.groomAge}, DOB {matchDetails.groomDob} · {matchDetails.groomBirthTime}</p>
+                          <p className="mt-1"><span className="text-[var(--faint)]">Place:</span> {matchDetails.groomBirthPlace}</p>
+                        </>
+                      ) : (
+                        <>
+                          <p><span className="text-[var(--faint)]">Name:</span> {birthDetails.name}</p>
+                          <p className="mt-1"><span className="text-[var(--faint)]">DOB:</span> {birthDetails.dob} · {birthDetails.time}</p>
+                          <p className="mt-1"><span className="text-[var(--faint)]">Place:</span> {birthDetails.place}</p>
+                        </>
+                      )}
+                      {serviceNote.trim() && (
+                        <p className="mt-2.5 pt-2 border-t border-[var(--border)] text-xs text-[var(--body)]">
+                          <span className="font-semibold text-[var(--gold-ink)]">Note:</span> {serviceNote}
+                        </p>
+                      )}
                     </div>
+
                     <div className="grid gap-6 md:grid-cols-2">
                       <div className="flex flex-col items-center rounded-xl border border-[var(--border)] bg-[var(--bg-alt)] p-5">
                         <div className="relative h-44 w-44 overflow-hidden rounded-xl border border-[var(--border)] bg-white p-2 shadow-[var(--shadow-sm)]">
-                          <Image
-                            src={QR_CODE_URL}
-                            alt="UPI QR Code"
-                            fill
-                            className="object-contain"
-                            unoptimized
-                          />
+                          <Image src={QR_CODE_URL} alt="UPI QR Code" fill className="object-contain" unoptimized />
                         </div>
-                        <button
-                          type="button"
-                          onClick={copyUpi}
-                          className="mt-4 inline-flex items-center gap-2 rounded-lg border border-[var(--border-strong)] bg-[var(--surface)] px-3 py-1.5 text-sm text-[var(--ink)] transition-colors hover:border-[var(--primary)]"
-                        >
+                        <button type="button" onClick={copyUpi}
+                          className="mt-4 inline-flex items-center gap-2 rounded-lg border border-[var(--border-strong)] bg-[var(--surface)] px-3 py-1.5 text-sm text-[var(--ink)] transition-colors hover:border-[var(--primary)]">
                           <span className="text-[var(--gold-ink)]">{UPI_ID}</span>
-                          {copied ? (
-                            <Check className="h-3.5 w-3.5 text-[var(--sage)]" />
-                          ) : (
-                            <Copy className="h-3.5 w-3.5" />
-                          )}
+                          {copied ? <Check className="h-3.5 w-3.5 text-[var(--sage)]" /> : <Copy className="h-3.5 w-3.5" />}
                         </button>
-                        <p className="mt-3 font-display text-2xl font-semibold text-[var(--ink)]">
-                          ₹{consultationFee}
-                        </p>
+                        <p className="mt-3 font-display text-2xl font-semibold text-[var(--ink)]">₹{consultationFee}</p>
                       </div>
                       <div className="flex flex-col justify-center gap-4">
-                        <label
-                          htmlFor="service-screenshot"
-                          className="group flex cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed border-[var(--border-strong)] bg-[var(--bg-alt)] px-4 py-6 text-center transition-colors hover:border-[var(--primary)]"
-                        >
+                        <label htmlFor="service-screenshot"
+                          className="group flex cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed border-[var(--border-strong)] bg-[var(--bg-alt)] px-4 py-6 text-center transition-colors hover:border-[var(--primary)]">
                           {previewUrl ? (
                             <span className="relative h-28 w-28 overflow-hidden rounded-lg border border-[var(--border)]">
-                              <Image
-                                src={previewUrl}
-                                alt="Preview"
-                                fill
-                                className="object-cover"
-                                unoptimized
-                              />
+                              <Image src={previewUrl} alt="Preview" fill className="object-cover" unoptimized />
                               <span className="absolute right-1 top-1 flex h-5 w-5 items-center justify-center rounded-full bg-[var(--sage)] text-white">
                                 <CheckCircle2 className="h-3.5 w-3.5" />
                               </span>
@@ -540,33 +742,17 @@ export function UserDashboard() {
                           ) : (
                             <UploadCloud className="h-8 w-8 text-[var(--faint)] transition-colors group-hover:text-[var(--primary)]" />
                           )}
-                          <span className="mt-3 text-sm font-medium text-[var(--ink)]">
-                            {file ? t.dashboard.uploadScreenshot : t.dashboard.uploadScreenshot}
-                          </span>
-                          <span className="mt-1 text-xs text-[var(--faint)]">
-                            PNG or JPG, up to 10 MB
-                          </span>
-                          <input
-                            id="service-screenshot"
-                            type="file"
-                            accept="image/*"
-                            className="hidden"
-                            onChange={(e) =>
-                              handleFile(e.target.files?.[0] ?? null)
-                            }
-                          />
+                          <span className="mt-3 text-sm font-medium text-[var(--ink)]">{t.dashboard.uploadScreenshot}</span>
+                          <span className="mt-1 text-xs text-[var(--faint)]">PNG or JPG, up to 10 MB</span>
+                          <input id="service-screenshot" type="file" accept="image/*" className="hidden"
+                            onChange={(e) => handleFile(e.target.files?.[0] ?? null)} />
                         </label>
                         <Button
-                          onClick={submitServiceRequest}
-                          loading={submitting}
-                          disabled={!file}
-                          className="w-full"
-                        >
+                          onClick={selectedService === "Match Horoscope" ? submitMatchHoroscope : submitServiceRequest}
+                          loading={submitting} disabled={!file} className="w-full">
                           {t.dashboard.submitRequest}
                         </Button>
-                        <p className="text-center text-xs text-[var(--faint)]">
-                          {t.dashboard.paymentNote}
-                        </p>
+                        <p className="text-center text-xs text-[var(--faint)]">{t.dashboard.paymentNote}</p>
                       </div>
                     </div>
                   </section>
@@ -812,15 +998,24 @@ export function UserDashboard() {
                           </p>
                         )}
                         <p className="font-medium text-[var(--ink)]">
-                          {b.serviceName
-                            ? `${b.birthName ?? b.userName} · ${t.dashboard.dob} ${b.dob ?? b.date}`
-                            : `${format(parseISO(b.date), "EEEE, MMM d, yyyy")} · ${b.timeSlot}`}
+                          {b.brideName
+                            ? `${b.brideName} & ${b.groomName}`
+                            : b.serviceName
+                              ? `${b.birthName ?? b.userName} · ${t.dashboard.dob} ${b.dob ?? b.date}`
+                              : `${format(parseISO(b.date), "EEEE, MMM d, yyyy")} · ${b.timeSlot}`}
                         </p>
                         <p className="mt-1 text-sm text-[var(--faint)]">
-                          {b.serviceName
-                            ? `${b.birthPlace ?? ""} · ${b.birthTime ?? b.timeSlot} · ₹${b.amount}`
-                            : `₹${b.amount}`}
+                          {b.brideName
+                            ? `Bride DOB: ${b.brideDob ?? b.date} · Groom DOB: ${b.groomDob ?? "—"} · ₹${b.amount}`
+                            : b.serviceName
+                              ? `${b.birthPlace ?? ""} · ${b.birthTime ?? b.timeSlot} · ₹${b.amount}`
+                              : `₹${b.amount}`}
                         </p>
+                        {b.note && (
+                          <p className="mt-2 text-xs text-[var(--body)] bg-[var(--bg-alt)] p-2.5 rounded-lg border border-[var(--border)] italic">
+                            <span className="font-semibold text-[var(--gold-ink)] not-italic">Note:</span> "{b.note}"
+                          </p>
+                        )}
                       </div>
                       <div className="flex items-center gap-3">
                         <Badge status={b.status}>{statusLabel}</Badge>

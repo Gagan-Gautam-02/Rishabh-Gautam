@@ -39,7 +39,7 @@ import {
   updateBookingStatus,
 } from "@/lib/bookings";
 import { isValidMeetUrl } from "@/lib/meet";
-import { subscribeChatList, type ChatListItem } from "@/lib/chat";
+import { paidChatId, sendMessage, subscribeChatList, type ChatListItem } from "@/lib/chat";
 import { subscribeUsers } from "@/lib/users";
 import { isFirebaseConfigured } from "@/lib/firebase";
 import { useAuthStore } from "@/store/authStore";
@@ -175,6 +175,18 @@ export function AdminDashboard() {
   async function handleStatus(booking: Booking, status: Booking["status"]) {
     try {
       await updateBookingStatus(booking.id, status, booking.slotId);
+      if (status === "confirmed" && user) {
+        await sendMessage({
+          bookingId: paidChatId(booking.userId),
+          senderId: user.uid,
+          senderRole: "admin",
+          senderName: user.displayName || "Astro Bodh Astrologer",
+          text: `Your ${booking.serviceName || "consultation"} booking for ${booking.date} (${booking.timeSlot}) has been accepted! You can chat with me here.`,
+          userId: booking.userId,
+          userName: booking.userName,
+          chatType: "paid",
+        }).catch(() => undefined);
+      }
       toast.success(`Booking ${status}`);
     } catch {
       toast.error("Update failed");
@@ -618,37 +630,49 @@ export function AdminDashboard() {
                           <p className="mt-1 text-sm text-[var(--faint)]">
                             {b.userPhone}
                           </p>
-                          {b.serviceName ? (
-                            <div className="mt-3 rounded-xl border border-[var(--border)] bg-[var(--bg-alt)] px-3.5 py-3 text-sm">
-                              <p className="font-semibold text-[var(--gold-ink)]">
-                                {b.serviceName}
-                              </p>
-                              <p className="mt-2 text-[var(--body)]">
-                                <span className="text-[var(--faint)]">Name:</span>{" "}
-                                {b.birthName ?? b.userName}
-                              </p>
-                              <p className="mt-1 text-[var(--body)]">
-                                <span className="text-[var(--faint)]">DOB:</span>{" "}
-                                {b.dob
-                                  ? format(parseISO(b.dob), "dd MMM yyyy")
-                                  : "—"}
-                              </p>
-                              <p className="mt-1 text-[var(--body)]">
-                                <span className="text-[var(--faint)]">Place:</span>{" "}
-                                {b.birthPlace ?? "—"}
-                              </p>
-                              <p className="mt-1 text-[var(--body)]">
-                                <span className="text-[var(--faint)]">Time:</span>{" "}
-                                {b.birthTime ?? b.timeSlot}
-                              </p>
-                            </div>
-                          ) : (
-                            <p className="mt-2 text-sm text-[var(--body)]">
-                              {format(parseISO(b.date), "EEE, MMM d, yyyy")} ·{" "}
-                              {b.timeSlot}
+                          <div className="mt-3 rounded-xl border border-[var(--border)] bg-[var(--bg-alt)] px-3.5 py-3 text-sm">
+                            <p className="font-semibold text-[var(--gold-ink)] mb-2">
+                              📅 Consultation Meeting: {b.date && b.date.length > 5 ? format(parseISO(b.date), "EEE, MMM d, yyyy") : b.date || "Assigned on confirmation"} · {b.timeSlot}
                             </p>
+                            {b.serviceName && (
+                              <p className="text-xs font-semibold text-[var(--ink)] mb-2 uppercase tracking-wide">
+                                Service: {b.serviceName}
+                              </p>
+                            )}
+                            {b.brideName ? (
+                              <div className="space-y-2">
+                                <div className="rounded-lg bg-[var(--surface)] p-2.5 border border-[var(--border)]">
+                                  <p className="font-semibold text-xs text-[var(--gold-ink)] uppercase">Bride Birth Details</p>
+                                  <p className="mt-1 text-[var(--body)]"><span className="text-[var(--faint)]">Name:</span> {b.brideName} ({b.brideAge} yrs)</p>
+                                  <p className="text-[var(--body)]"><span className="text-[var(--faint)]">DOB:</span> {b.brideDob ? format(parseISO(b.brideDob), "dd MMM yyyy") : "—"} · {b.brideBirthTime}</p>
+                                  <p className="text-[var(--body)]"><span className="text-[var(--faint)]">Place:</span> {b.brideBirthPlace}</p>
+                                </div>
+                                <div className="rounded-lg bg-[var(--surface)] p-2.5 border border-[var(--border)]">
+                                  <p className="font-semibold text-xs text-[var(--gold-ink)] uppercase">Groom Birth Details</p>
+                                  <p className="mt-1 text-[var(--body)]"><span className="text-[var(--faint)]">Name:</span> {b.groomName} ({b.groomAge} yrs)</p>
+                                  <p className="text-[var(--body)]"><span className="text-[var(--faint)]">DOB:</span> {b.groomDob ? format(parseISO(b.groomDob), "dd MMM yyyy") : "—"} · {b.groomBirthTime}</p>
+                                  <p className="text-[var(--body)]"><span className="text-[var(--faint)]">Place:</span> {b.groomBirthPlace}</p>
+                                </div>
+                              </div>
+                            ) : (
+                              <div className="rounded-lg bg-[var(--surface)] p-2.5 border border-[var(--border)]">
+                                <p className="font-semibold text-xs text-[var(--gold-ink)] uppercase mb-1">User Birth Details</p>
+                                <p className="text-[var(--body)]"><span className="text-[var(--faint)]">Name:</span> {b.birthName ?? b.userName}</p>
+                                <p className="mt-0.5 text-[var(--body)]"><span className="text-[var(--faint)]">DOB:</span> {b.dob ? format(parseISO(b.dob), "dd MMM yyyy") : "—"} · {b.birthTime ?? "—"}</p>
+                                <p className="mt-0.5 text-[var(--body)]"><span className="text-[var(--faint)]">Place:</span> {b.birthPlace ?? "—"}</p>
+                              </div>
+                            )}
+                          </div>
+
+                          {b.note && (
+                            <div className="mt-3 rounded-xl border border-[var(--gold)]/40 bg-[var(--gold-soft)] px-3.5 py-2.5 text-xs text-[var(--ink)]">
+                              <p className="font-semibold text-[var(--gold-ink)] flex items-center gap-1.5 mb-1">
+                                📝 User Note / Special Request:
+                              </p>
+                              <p className="leading-relaxed text-[var(--body)]">{b.note}</p>
+                            </div>
                           )}
-                          <p className="mt-1 font-display text-lg font-semibold text-[var(--gold-ink)]">
+                          <p className="mt-2 font-display text-lg font-semibold text-[var(--gold-ink)]">
                             ₹{b.amount}
                           </p>
                         </div>
@@ -683,6 +707,18 @@ export function AdminDashboard() {
                                 <X className="h-4 w-4" /> {t.admin.reject}
                               </Button>
                             </div>
+                          )}
+                          {b.status === "confirmed" && (
+                            <Button
+                              size="sm"
+                              variant="secondary"
+                              onClick={() => {
+                                setActivePaidId(paidChatId(b.userId));
+                                setTab("paidChat");
+                              }}
+                            >
+                              <MessageCircle className="h-4 w-4" /> Chat with {b.userName.split(" ")[0]}
+                            </Button>
                           )}
                         </div>
                       </div>

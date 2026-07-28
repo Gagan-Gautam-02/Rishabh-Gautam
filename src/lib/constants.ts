@@ -1,5 +1,5 @@
 export const APP_NAME = "Astro Bodh";
-export const ASTROLOGER_NAME = "Acharya Rishabh Gautam";
+export const ASTROLOGER_NAME = "Vedic Astrologer";
 export const CONSULTATION_FEE = Number(
   process.env.NEXT_PUBLIC_CONSULTATION_FEE ?? 499
 );
@@ -9,40 +9,88 @@ export const QR_CODE_URL =
 
 export const SERVICES = [
   {
-    title: "Career Guidance",
-    description:
-      "Navigate career crossroads with planetary timing and remedial advice.",
-    icon: "Briefcase",
+    title: "Birth Chart / Kundli",
+    description: "Deep kundali analysis covering strengths, challenges, and remedies.",
+    detailedDescription:
+      "Uncover your planetary alignments, dasha cycles, and karmic strengths with a detailed birth chart reading designed to bring deep clarity and direction.",
+    highlights: [
+      "Complete Planetary Chart Analysis",
+      "Dasha &amp; Transit Predictions",
+      "Personalized Vedic Remedies",
+    ],
+    icon: "Sparkles",
+    image: "/service-birth-chart.png",
+    action: "book",
   },
   {
-    title: "Love & Relationships",
-    description:
-      "Understand compatibility, timing, and harmony in your relationships.",
-    icon: "Heart",
-  },
-  {
-    title: "Health Insights",
-    description:
-      "Holistic wellness guidance based on planetary influences on vitality.",
-    icon: "Activity",
+    title: "Match Horoscope",
+    description: "In-depth Guna Milan and matrimonial compatibility evaluation.",
+    detailedDescription:
+      "Assess matrimonial compatibility, Guna Milan, and emotional harmony for bride and groom with classical astrological wisdom.",
+    highlights: [
+      "36 Guna Milan Scoring",
+      "Manglik &amp; Dosha Evaluation",
+      "Relationship Harmony Guidance",
+    ],
+    icon: "HeartHandshake",
+    image: "/service-match-horoscope.png",
+    action: "book",
   },
   {
     title: "Vastu Consultation",
-    description:
-      "Align your home and workspace energy for prosperity and peace.",
+    description: "Align your home and workspace energy for prosperity and peace.",
+    detailedDescription:
+      "Harmonize the natural elements in your living space and office to remove energy blockages, attracting health, wealth, and spiritual balance.",
+    highlights: [
+      "Home &amp; Office Energy Mapping",
+      "Directional Balancing Remedies",
+      "Non-Destructive Vastu Solutions",
+    ],
     icon: "Home",
+    image: "/service-vastu.png",
+    action: "book",
   },
   {
-    title: "Numerology",
-    description:
-      "Decode life path numbers and name vibrations for clearer decisions.",
-    icon: "Hash",
+    title: "Your Life Predictions",
+    description: "Personalized forecast covering health, finance, love, and career.",
+    detailedDescription:
+      "Gain foresight into key life phases, upcoming planetary shifts, and opportunities across your health, wealth, love, and career journey.",
+    highlights: [
+      "Multi-Year Life Roadmap",
+      "Career &amp; Wealth Guidance",
+      "Timing of Key Life Events",
+    ],
+    icon: "FileText",
+    image: "/service-life-predictions.png",
+    action: "book",
   },
   {
-    title: "Birth Chart Reading",
-    description:
-      "Deep kundali analysis covering strengths, challenges, and remedies.",
-    icon: "Sparkles",
+    title: "Auspicious Time (Muhurat)",
+    description: "Find favorable timings for weddings, business launches, and major decisions.",
+    detailedDescription:
+      "Choose the most auspicious planetary moments to launch new ventures, hold sacred ceremonies, or sign important contracts for maximum success.",
+    highlights: [
+      "Shubh Muhurat Selection",
+      "Custom Event Timing",
+      "Removal of Malefic Obstacles",
+    ],
+    icon: "Atom",
+    image: "/service-gochar-phal.png",
+    action: "book",
+  },
+  {
+    title: "Ask to Astrologer",
+    description: "Direct one-on-one consultation for pressing life questions.",
+    detailedDescription:
+      "Connect directly with an experienced Vedic Astrologer to get precise answers, remedies, and personal guidance for any specific concern or query.",
+    highlights: [
+      "1-on-1 Direct Consultation",
+      "Private Chat &amp; Video Support",
+      "Actionable Guidance &amp; Remedies",
+    ],
+    icon: "Phone",
+    image: "/service-talk-astrologer.png",
+    action: "book",
   },
 ] as const;
 
@@ -88,145 +136,42 @@ export const DASHBOARD_SERVICES = [
     title: "Birth Chart / Kundli",
     description: "Planetary position and your chart.",
     icon: "Sparkles",
+    image: "/service-birth-chart.png",
     action: "book",
   },
   {
     title: "Match Horoscope",
     description: "Match Horoscope (Guna milan with your partner)",
     icon: "HeartHandshake",
+    image: "/service-match-horoscope.png",
     action: "book",
   },
   {
-    title: "Talk to Astrologer",
-    description: "Get First Chat Free with Certified Astrologers.",
-    icon: "Phone",
-    action: "chat",
+    title: "Vastu",
+    description: "Align your home or workspace energies for prosperity, peace, and positive flow.",
+    icon: "Home",
+    image: "/service-vastu.png",
+    action: "book",
   },
   {
     title: "Your Life Predictions",
     description: "Know about your Nature, Love and Career.",
     icon: "FileText",
+    image: "/service-life-predictions.png",
     action: "book",
   },
   {
-    title: "Gochar Phal (Transit Report)",
-    description: "How does position of current planets impact you?",
+    title: "Auspicious time",
+    description: "A favorably chosen moment to launch any new venture, event, or life milestone to ensure maximum success and good fortune.",
     icon: "Atom",
-    action: "book",
-  },
-
-  {
-    title: "Lal Kitab Horoscope",
-    description:
-      "Know Lal Kitab (Red Book) predictions, remedies & tips for your problems.",
-    icon: "BookMarked",
+    image: "/service-gochar-phal.png",
     action: "book",
   },
   {
-    title: "Mangal Dosha",
-    description:
-      "Do you have Mangal dosha? What are the remedies? Impact on married life?",
-    icon: "Crosshair",
-    action: "book",
-  },
-  {
-    title: "Ask A Question",
-    description: "Get your personalized report by expert astrologers.",
-    icon: "HelpCircle",
-    action: "chat",
-  },
-  {
-    title: "Ascendant",
-    description:
-      "What does your Ascendant, Nakshatra and Moon Sign tell about you.",
-    icon: "Sun",
-    action: "book",
-  },
-  {
-    title: "Gemstones Report",
-    description:
-      "Which gemstone will suit you? Which gem should you wear? How to wear it?",
-    icon: "Gem",
-    action: "book",
-  },
-  {
-    title: "Brihat Kundli",
-    description: "250+ Pages Colored Kundli.",
-    icon: "BookOpen",
-    action: "book",
-  },
-  {
-    title: "2026 Personalized Horoscope",
-    description: "Get your personalized annual horoscope for 2026.",
-    icon: "Calendar",
-    action: "book",
-  },
-  {
-    title: "My Day Today",
-    description: "Know predictions for today based on your birth chart.",
-    icon: "Clock",
-    action: "book",
-  },
-  {
-    title: "Year Analysis (Varshphal)",
-    description:
-      "How will this year be for you? What good and bad can you expect?",
-    icon: "CalendarDays",
-    action: "book",
-  },
-  {
-    title: "Sade Sati Life Report",
-    description: "Know about impact of Shani Sade Sati for whole life.",
-    icon: "Orbit",
-    action: "book",
-  },
-  {
-    title: "Kalsarp Dosh / Yog",
-    description: "Know about impact of Kaalsarp dosh for whole life.",
-    icon: "CircleDot",
-    action: "book",
-  },
-  {
-    title: "Dasha Phal Analysis",
-    description:
-      "Know about rise and fall in life, good and bad events, change of time in advance.",
-    icon: "Star",
-    action: "book",
-  },
-  {
-    title: "Love",
-    description: "Know about your Love.",
-    icon: "Heart",
-    action: "book",
-  },
-  {
-    title: "Career",
-    description: "Know about your Career.",
-    icon: "Briefcase",
-    action: "book",
-  },
-  {
-    title: "Nakshatra",
-    description: "Know about your Nakshatra.",
-    icon: "Sparkles",
-    action: "book",
-  },
-  {
-    title: "Nature",
-    description: "Know about your Nature.",
-    icon: "Lightbulb",
-    action: "book",
-  },
-  {
-    title: "Numerology",
-    description: "Know your lucky number.",
-    icon: "Hash",
-    action: "book",
-  },
-  {
-    title: "Health Index",
-    description: "Check your immunity level.",
-    icon: "Activity",
+    title: "Ask to Astrologer",
+    description: "Direct 1-on-1 guidance & specific remedies with an experienced Vedic Astrologer.",
+    icon: "Phone",
+    image: "/service-talk-astrologer.png",
     action: "book",
   },
 ] as const;

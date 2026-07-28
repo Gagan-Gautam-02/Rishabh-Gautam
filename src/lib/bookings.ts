@@ -43,6 +43,19 @@ function mapBooking(id: string, data: Record<string, unknown>): Booking {
     dob: data.dob ? String(data.dob) : undefined,
     birthPlace: data.birthPlace ? String(data.birthPlace) : undefined,
     birthTime: data.birthTime ? String(data.birthTime) : undefined,
+    // Match Horoscope — bride
+    brideName: data.brideName ? String(data.brideName) : undefined,
+    brideAge: data.brideAge ? String(data.brideAge) : undefined,
+    brideDob: data.brideDob ? String(data.brideDob) : undefined,
+    brideBirthPlace: data.brideBirthPlace ? String(data.brideBirthPlace) : undefined,
+    brideBirthTime: data.brideBirthTime ? String(data.brideBirthTime) : undefined,
+    // Match Horoscope — groom
+    groomName: data.groomName ? String(data.groomName) : undefined,
+    groomAge: data.groomAge ? String(data.groomAge) : undefined,
+    groomDob: data.groomDob ? String(data.groomDob) : undefined,
+    groomBirthPlace: data.groomBirthPlace ? String(data.groomBirthPlace) : undefined,
+    groomBirthTime: data.groomBirthTime ? String(data.groomBirthTime) : undefined,
+    note: data.note ? String(data.note) : undefined,
     createdAt: (data.createdAt as { toMillis?: () => number })?.toMillis?.() ?? Date.now(),
   };
 }
@@ -176,7 +189,7 @@ export async function createBooking(input: {
   return bookingRef.id;
 }
 
-/** Service request with birth details — no slot required. */
+/** Service request with birth details and optional consultation slot. */
 export async function createServiceBooking(input: {
   userId: string;
   userName: string;
@@ -188,15 +201,30 @@ export async function createServiceBooking(input: {
   dob: string;
   birthPlace: string;
   birthTime: string;
+  consultationDate?: string;
+  consultationTime?: string;
+  slotId?: string;
+  note?: string;
 }) {
   const db = getFirebaseDb();
+  const meetingDate = input.consultationDate || input.dob;
+  const meetingTime = input.consultationTime || input.birthTime;
+
+  if (input.slotId) {
+    await updateDoc(doc(db, "slots", input.slotId), {
+      isBooked: true,
+      bookedBy: input.userId,
+      userName: input.userName,
+    });
+  }
+
   const bookingRef = await addDoc(collection(db, "bookings"), {
     userId: input.userId,
     userName: input.userName,
     userPhone: input.userPhone,
-    date: input.dob,
-    timeSlot: input.birthTime,
-    slotId: "",
+    date: meetingDate,
+    timeSlot: meetingTime,
+    slotId: input.slotId || "",
     amount: input.amount,
     screenshotUrl: input.screenshotUrl,
     serviceName: input.serviceName,
@@ -204,6 +232,7 @@ export async function createServiceBooking(input: {
     dob: input.dob,
     birthPlace: input.birthPlace,
     birthTime: input.birthTime,
+    ...(input.note ? { note: input.note } : {}),
     status: "pending",
     createdAt: serverTimestamp(),
   });
@@ -213,8 +242,84 @@ export async function createServiceBooking(input: {
       type: "new_booking",
       bookingId: bookingRef.id,
       userName: input.userName,
-      date: input.dob,
-      timeSlot: `${input.serviceName} · ${input.birthTime}`,
+      date: meetingDate,
+      timeSlot: `${input.serviceName} · ${meetingTime}`,
+      read: false,
+      createdAt: serverTimestamp(),
+    });
+  } catch (err) {
+    console.error("Failed to create notification:", err);
+  }
+
+  return bookingRef.id;
+}
+
+/** Match Horoscope request — stores bride + groom details and optional consultation slot. */
+export async function createMatchHoroscopeBooking(input: {
+  userId: string;
+  userName: string;
+  userPhone: string;
+  amount: number;
+  screenshotUrl: string;
+  brideName: string;
+  brideAge: string;
+  brideDob: string;
+  brideBirthPlace: string;
+  brideBirthTime: string;
+  groomName: string;
+  groomAge: string;
+  groomDob: string;
+  groomBirthPlace: string;
+  groomBirthTime: string;
+  consultationDate?: string;
+  consultationTime?: string;
+  slotId?: string;
+  note?: string;
+}) {
+  const db = getFirebaseDb();
+  const meetingDate = input.consultationDate || input.brideDob;
+  const meetingTime = input.consultationTime || input.brideBirthTime;
+
+  if (input.slotId) {
+    await updateDoc(doc(db, "slots", input.slotId), {
+      isBooked: true,
+      bookedBy: input.userId,
+      userName: input.userName,
+    });
+  }
+
+  const bookingRef = await addDoc(collection(db, "bookings"), {
+    userId: input.userId,
+    userName: input.userName,
+    userPhone: input.userPhone,
+    date: meetingDate,
+    timeSlot: meetingTime,
+    slotId: input.slotId || "",
+    amount: input.amount,
+    screenshotUrl: input.screenshotUrl,
+    serviceName: "Match Horoscope",
+    brideName: input.brideName,
+    brideAge: input.brideAge,
+    brideDob: input.brideDob,
+    brideBirthPlace: input.brideBirthPlace,
+    brideBirthTime: input.brideBirthTime,
+    groomName: input.groomName,
+    groomAge: input.groomAge,
+    groomDob: input.groomDob,
+    groomBirthPlace: input.groomBirthPlace,
+    groomBirthTime: input.groomBirthTime,
+    ...(input.note ? { note: input.note } : {}),
+    status: "pending",
+    createdAt: serverTimestamp(),
+  });
+
+  try {
+    await addDoc(collection(db, "notifications"), {
+      type: "new_booking",
+      bookingId: bookingRef.id,
+      userName: input.userName,
+      date: input.brideDob,
+      timeSlot: `Match Horoscope · ${input.brideName} & ${input.groomName}`,
       read: false,
       createdAt: serverTimestamp(),
     });

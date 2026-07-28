@@ -32,19 +32,30 @@ export const en = {
     freeTitle: "Free Horoscope and Astrology Services",
     servicesEyebrow: "What we offer",
     servicesTitle: "Guidance for every crossroad",
-    aboutEyebrow: "About the astrologer",
-    aboutTitle: "A decade of trusted counsel",
+    aboutEyebrow: "About Our Practice",
+    aboutTitle: "A Decade of Trusted Counsel",
     aboutBio:
-      "With over a decade of practice in Vedic astrology, {name} blends classical chart reading with practical, compassionate guidance. Every consultation is personalized — focused on clarity you can act on.",
+      "With over a decade of practice in traditional Vedic astrology, our experienced counselors blend classical chart reading with practical, compassionate guidance. Every consultation is 100% private and personalized — focused on actionable spiritual clarity.",
     vedicAstrologer: "Vedic Astrologer",
     yearsExp: "Years Experience",
     consultations: "Consultations",
     avgRating: "Avg. Rating",
     ratedBy: "Rated by 1,200+ clients",
   },
+  privacy: {
+    eyebrow: "100% Confidentiality & Anonymity",
+    title: "We Respect Your Privacy & Guarantee Anonymity",
+    subtitle: "Your identity, birth details, and personal consultations are kept completely private and protected.",
+    feature1Title: "Total Anonymity Guaranteed",
+    feature1Desc: "Consult with absolute peace of mind. We maintain strict client anonymity and never reveal your identity to any third party.",
+    feature2Title: "Encrypted Data Security",
+    feature2Desc: "Your birth details, payment records, and consultation history are strictly confidential and encrypted end-to-end.",
+    feature3Title: "Selfless & Safe Space",
+    feature3Desc: "Built on a non-profit foundation, providing a safe, non-judgmental environment for honest and compassionate guidance.",
+  },
   footer: {
     blurb:
-      "Personalized astrology consultations with {name}. Clarity for career, relationships, and life decisions.",
+      "Personalized astrology consultations with Astro Bodh. 100% confidential guidance for career, relationships, and life decisions.",
     contact: "Contact",
     quickLinks: "Quick Links",
     bookSession: "Book a Session",
@@ -94,6 +105,9 @@ export const en = {
     allServices: "All services",
     serviceRequest: "Service request",
     birthDetails: "Birth details",
+    brideGroomDetails: "Bride & Groom Details",
+    bride: "Bride",
+    groom: "Groom",
     name: "Name",
     dob: "Date of Birth",
     place: "Place of Birth",
@@ -219,37 +233,67 @@ export const en = {
     rejected: "Rejected",
   },
   services: {
-    "Career Guidance": {
-      title: "Career Guidance",
+    "Birth Chart / Kundli": {
+      title: "Birth Chart / Kundli",
       description:
-        "Navigate career crossroads with planetary timing and remedial advice.",
+        "Uncover your planetary alignments, dasha cycles, and karmic strengths with a detailed birth chart reading designed to bring deep clarity and direction.",
+      highlights: [
+        "Complete Planetary Chart Analysis",
+        "Dasha & Transit Predictions",
+        "Personalized Vedic Remedies",
+      ],
     },
-    "Love & Relationships": {
-      title: "Love & Relationships",
+    "Match Horoscope": {
+      title: "Match Horoscope",
       description:
-        "Understand compatibility, timing, and harmony in your relationships.",
-    },
-    "Health Insights": {
-      title: "Health Insights",
-      description:
-        "Holistic wellness guidance based on planetary influences on vitality.",
+        "Assess matrimonial compatibility, Guna Milan, and emotional harmony for bride and groom with classical astrological wisdom.",
+      highlights: [
+        "36 Guna Milan Scoring",
+        "Manglik & Dosha Evaluation",
+        "Relationship Harmony Guidance",
+      ],
     },
     "Vastu Consultation": {
       title: "Vastu Consultation",
       description:
-        "Align your home and workspace energy for prosperity and peace.",
+        "Harmonize the natural elements in your living space and office to remove energy blockages, attracting health, wealth, and spiritual balance.",
+      highlights: [
+        "Home & Office Energy Mapping",
+        "Directional Balancing Remedies",
+        "Non-Destructive Vastu Solutions",
+      ],
     },
-    Numerology: {
-      title: "Numerology",
+    "Your Life Predictions": {
+      title: "Your Life Predictions",
       description:
-        "Decode life path numbers and name vibrations for clearer decisions.",
+        "Gain foresight into key life phases, upcoming planetary shifts, and opportunities across your health, wealth, love, and career journey.",
+      highlights: [
+        "Multi-Year Life Roadmap",
+        "Career & Wealth Guidance",
+        "Timing of Key Life Events",
+      ],
     },
-    "Birth Chart Reading": {
-      title: "Birth Chart Reading",
+    "Auspicious Time (Muhurat)": {
+      title: "Auspicious Time (Muhurat)",
       description:
-        "Deep kundali analysis covering strengths, challenges, and remedies.",
+        "Choose the most auspicious planetary moments to launch new ventures, hold sacred ceremonies, or sign important contracts for maximum success.",
+      highlights: [
+        "Shubh Muhurat Selection",
+        "Custom Event Timing",
+        "Removal of Malefic Obstacles",
+      ],
     },
-  } as Record<string, { title: string; description: string }>,
+    "Ask to Astrologer": {
+      title: "Ask to Astrologer",
+      description:
+        "Connect directly with Acharya Rishabh Gautam to get precise answers, remedies, and personal guidance for any specific concern or query.",
+      highlights: [
+        "1-on-1 Direct Consultation",
+        "Private Chat & Video Support",
+        "Actionable Guidance & Remedies",
+      ],
+    },
+  } as Record<string, { title: string; description: string; highlights?: string[] }>,
   freeFeatures: {
     "Kundli (Birth Chart)": "Kundli (Birth Chart)",
     "Horoscope Matching": "Horoscope Matching",
@@ -293,17 +337,25 @@ export const en = {
       title: "Match Horoscope",
       description: "Match Horoscope (Guna milan with your partner)",
     },
+    Vastu: {
+      title: "Vastu",
+      description: "Align your home or workspace energies for prosperity, peace, and positive flow.",
+    },
+    "Ask to Astrologer": {
+      title: "Ask to Astrologer",
+      description: "Direct 1-on-1 guidance & specific remedies with an experienced Vedic Astrologer.",
+    },
     "Talk to Astrologer": {
-      title: "Talk to Astrologer",
-      description: "Get First Chat Free with Certified Astrologers.",
+      title: "Ask to Astrologer",
+      description: "Direct 1-on-1 guidance & specific remedies with an experienced Vedic Astrologer.",
     },
     "Your Life Predictions": {
       title: "Your Life Predictions",
       description: "Know about your Nature, Love and Career.",
     },
-    "Gochar Phal (Transit Report)": {
-      title: "Gochar Phal (Transit Report)",
-      description: "How does position of current planets impact you?",
+    "Auspicious time": {
+      title: "Auspicious time",
+      description: "A favorably chosen moment to launch any new venture, event, or life milestone to ensure maximum success and good fortune.",
     },
     "Consultation Software": {
       title: "Consultation Software",
