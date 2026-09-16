@@ -28,9 +28,9 @@ const notoDevanagari = Noto_Sans_Devanagari({
 });
 
 export const metadata: Metadata = {
-  title: `${APP_NAME} — Astrology Consultations`,
+  title: `${APP_NAME} — Classical Yoga & Astrology`,
   description:
-    "Book personalized astrology consultations for career, relationships, health, and life guidance.",
+    "Shastriya Yogshala — Classical yoga courses (1, 3, 6 months) and Vedic astrology consultations. Ancient wisdom, living practice.",
 };
 
 export default function RootLayout({

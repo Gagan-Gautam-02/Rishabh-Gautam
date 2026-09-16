@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Menu, X, Moon, UserRound } from "lucide-react";
+import { Menu, X, UserRound } from "lucide-react";
 import { useAuthStore } from "@/store/authStore";
 import { useT } from "@/store/localeStore";
 import { APP_NAME } from "@/lib/constants";
@@ -18,10 +18,10 @@ export function Navbar() {
   const isAdmin = profile?.role === "admin";
 
   const links = [
-    { href: "/#home", label: t.nav.home },
-    { href: "/#services", label: t.nav.services },
-    { href: "/#about", label: t.nav.about },
-    { href: "/#contact", label: t.nav.contact },
+    { href: "/#home", label: "Home" },
+    { href: "/#yoga", label: "Yoga" },
+    { href: "/#jyotish", label: "Jyotish" },
+    { href: "/#contact", label: "Contact" },
   ];
 
   useEffect(() => {
@@ -33,29 +33,30 @@ export function Navbar() {
 
   return (
     <header
-      className={`sticky top-0 z-50 transition-all duration-300 ${
-        scrolled
-          ? "border-b border-[var(--border)] bg-[var(--bg)]/85 shadow-[var(--shadow-sm)] backdrop-blur-xl"
-          : "border-b border-transparent bg-transparent"
-      }`}
+      className="sticky top-0 z-50 transition-all duration-300 backdrop-blur-[10px]"
+      style={{
+        height: "68px",
+        background: scrolled ? "rgba(10,23,17,0.85)" : "rgba(10,23,17,0.6)",
+        borderBottom: `1px solid ${scrolled ? "var(--brass-hairline)" : "transparent"}`,
+        boxShadow: scrolled ? "0 4px 24px rgba(0,0,0,0.3)" : "none",
+      }}
     >
       <nav className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3.5 sm:px-6">
-        <Link href="/" className="flex items-center gap-2">
-          <span className="flex h-9 w-9 items-center justify-center rounded-full bg-[var(--primary)] text-[var(--ink)]">
-            <Moon className="h-4.5 w-4.5" />
+        <Link href="/" className="flex items-center gap-2.5">
+          <span
+            className="flex h-9 w-9 items-center justify-center rounded-full text-lg"
+            style={{ background: "var(--emerald)", color: "var(--primary)", border: "1px solid var(--border)" }}
+          >
+            ॐ
           </span>
-          <span className="font-display text-xl tracking-tight text-[var(--ink)]">
+          <span className="heading text-base tracking-tight" style={{ color: "var(--ink)", lineHeight: 1.2 }}>
             {APP_NAME}
           </span>
         </Link>
 
         <div className="hidden items-center gap-8 md:flex">
           {links.map((l) => (
-            <Link
-              key={l.href}
-              href={l.href}
-              className="text-sm text-[var(--body)] transition-colors hover:text-[var(--primary)]"
-            >
+            <Link key={l.href} href={l.href} className="nav-link">
               {l.label}
             </Link>
           ))}

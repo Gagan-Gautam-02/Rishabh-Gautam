@@ -15,6 +15,9 @@ export const en = {
     hindi: "हिन्दी",
   },
   landing: {
+    welcomeTitle: "Welcome to Shastriya Yogshala",
+    heroSubtext: "Awaken clarity, strength, and inner peace through ancient Classical Yoga and authentic Vedic Astrology.",
+    exploreCourses: "Explore Courses",
     eyebrow: "Trusted Vedic Astrology",
     philosophyTitle: "Our Philosophy",
     philosophyBody:
@@ -286,7 +289,7 @@ export const en = {
     "Ask to Astrologer": {
       title: "Ask to Astrologer",
       description:
-        "Connect directly with Acharya Rishabh Gautam to get precise answers, remedies, and personal guidance for any specific concern or query.",
+        "Connect directly with an experienced Vedic Astrologer to get precise answers, remedies, and personal guidance for any specific concern or query.",
       highlights: [
         "1-on-1 Direct Consultation",
         "Private Chat & Video Support",

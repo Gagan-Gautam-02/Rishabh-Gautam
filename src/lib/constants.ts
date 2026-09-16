@@ -1,5 +1,5 @@
-export const APP_NAME = "Astro Bodh";
-export const ASTROLOGER_NAME = "Vedic Astrologer";
+export const APP_NAME = "Shastriya Yogshala";
+export const ASTROLOGER_NAME = "Astrologer";
 export const CONSULTATION_FEE = Number(
   process.env.NEXT_PUBLIC_CONSULTATION_FEE ?? 499
 );

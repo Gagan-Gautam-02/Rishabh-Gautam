@@ -1,8 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { AtSign, Mail, Phone, Moon } from "lucide-react";
-import { APP_NAME, ASTROLOGER_NAME } from "@/lib/constants";
+import { AtSign, Mail, Moon } from "lucide-react";
+import { APP_NAME } from "@/lib/constants";
 import { useT } from "@/store/localeStore";
 
 export function Footer() {
@@ -31,9 +31,6 @@ export function Footer() {
         <div>
           <h3 className="eyebrow mb-4">{t.footer.contact}</h3>
           <ul className="space-y-2.5 text-sm text-[var(--body)]">
-            <li className="flex items-center gap-2.5">
-              <Phone className="h-4 w-4 text-[var(--gold-ink)]" /> +91 98765 43210
-            </li>
             <li className="flex items-center gap-2.5">
               <Mail className="h-4 w-4 text-[var(--gold-ink)]" /> consult@{handle}.com
             </li>

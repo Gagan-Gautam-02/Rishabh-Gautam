@@ -5,6 +5,7 @@ import {
   createUserWithEmailAndPassword,
   onAuthStateChanged,
   signInWithEmailAndPassword,
+  signInWithPopup,
   signOut,
   updateProfile,
   type User,
@@ -15,7 +16,7 @@ import {
   setDoc,
   serverTimestamp,
 } from "firebase/firestore";
-import { getFirebaseAuth, getFirebaseDb, isFirebaseConfigured } from "@/lib/firebase";
+import { getFirebaseAuth, getFirebaseDb, isFirebaseConfigured, googleProvider } from "@/lib/firebase";
 import { updateUserProfile as saveUserProfile } from "@/lib/users";
 import type { AppUser } from "@/lib/types";
 
@@ -26,13 +27,11 @@ interface AuthState {
   initialized: boolean;
   init: () => () => void;
   signup: (data: {
-    name: string;
     email: string;
-    phone: string;
-    city: string;
     password: string;
   }) => Promise<void>;
   login: (email: string, password: string) => Promise<void>;
+  googleLogin: () => Promise<void>;
   logout: () => Promise<void>;
   refreshProfile: () => Promise<void>;
   updateProfileInfo: (data: {
@@ -166,21 +165,32 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     return unsub;
   },
 
-  signup: async ({ name, email, phone, city, password }) => {
+  signup: async ({ email, password }) => {
     const auth = getFirebaseAuth();
     const cred = await createUserWithEmailAndPassword(auth, email, password);
-    await updateProfile(cred.user, { displayName: name });
     try {
-      // Write phone/city immediately with merge so the auth-state race cannot wipe them
       await writeUserProfile(cred.user.uid, {
-        name: name.trim(),
+        name: cred.user.displayName || email.split("@")[0],
         email: cred.user.email || email,
-        phone: phone.trim(),
-        city: city.trim(),
+        phone: "",
+        city: "",
         role: "user",
         includeCreatedAt: true,
       });
-      const profile = await ensureUserProfile(cred.user, { name, phone, city });
+      const profile = await ensureUserProfile(cred.user);
+      set({ user: cred.user, profile, loading: false, initialized: true });
+    } catch (err: unknown) {
+      throw firestoreMissingError(err) ?? err;
+    }
+  },
+
+  googleLogin: async () => {
+    const auth = getFirebaseAuth();
+    const cred = await signInWithPopup(auth, googleProvider);
+    try {
+      const profile = await ensureUserProfile(cred.user, {
+        name: cred.user.displayName || undefined,
+      });
       set({ user: cred.user, profile, loading: false, initialized: true });
     } catch (err: unknown) {
       throw firestoreMissingError(err) ?? err;

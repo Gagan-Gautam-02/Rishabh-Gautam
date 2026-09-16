@@ -17,6 +17,9 @@ export const hi: Dictionary = {
     hindi: "हिन्दी",
   },
   landing: {
+    welcomeTitle: "शास्त्रीय योगशाला में आपका स्वागत है",
+    heroSubtext: "प्राचीन शास्त्रीय योग और वैदिक ज्योतिष के माध्यम से जीवन में स्पष्टता, शक्ति और शांति की प्राप्ति करें।",
+    exploreCourses: "पाठ्यक्रम देखें",
     eyebrow: "विश्वसनीय वैदिक ज्योतिष",
     philosophyTitle: "हमारा दर्शन",
     philosophyBody:

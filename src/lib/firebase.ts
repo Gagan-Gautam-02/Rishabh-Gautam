@@ -1,7 +1,9 @@
 import { initializeApp, getApps, getApp, type FirebaseApp } from "firebase/app";
-import { getAuth, type Auth } from "firebase/auth";
+import { getAuth, GoogleAuthProvider, type Auth } from "firebase/auth";
 import { getFirestore, type Firestore } from "firebase/firestore";
 import { getStorage, type FirebaseStorage } from "firebase/storage";
+
+export const googleProvider = new GoogleAuthProvider();
 
 /** Named Firestore database for this app (must match Firebase Console). */
 export const FIRESTORE_DATABASE_ID =
