@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { FormEvent, useState } from "react";
 import { motion } from "framer-motion";
 import toast from "react-hot-toast";
@@ -13,6 +13,13 @@ import { APP_NAME } from "@/lib/constants";
 
 export function SignupForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const service = searchParams ? searchParams.get("service") : null;
+  const redirectParam = searchParams ? searchParams.get("redirect") : null;
+  const targetPath = service
+    ? `/dashboard?service=${encodeURIComponent(service)}`
+    : redirectParam || "/dashboard";
+
   const { signup, googleLogin } = useAuthStore();
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
@@ -39,7 +46,7 @@ export function SignupForm() {
     try {
       await signup({ email, password });
       toast.success("Account created! Welcome 🙏");
-      router.push("/dashboard");
+      router.push(targetPath);
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : "Signup failed";
       toast.error(msg.replace("Firebase: ", "").split("(")[0].trim());
@@ -57,7 +64,7 @@ export function SignupForm() {
     try {
       await googleLogin();
       toast.success("Welcome 🙏");
-      router.push("/dashboard");
+      router.push(targetPath);
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : "Google sign-in failed";
       toast.error(msg.replace("Firebase: ", "").split("(")[0].trim());
@@ -127,7 +134,10 @@ export function SignupForm() {
 
       <p className="mt-5 text-center text-sm text-[var(--faint)]">
         Already have an account?{" "}
-        <Link href="/login" className="font-medium text-[var(--primary)] hover:underline">
+        <Link
+          href={service ? `/login?service=${encodeURIComponent(service)}` : (redirectParam ? `/login?redirect=${encodeURIComponent(redirectParam)}` : "/login")}
+          className="font-medium text-[var(--primary)] hover:underline"
+        >
           Sign in
         </Link>
       </p>

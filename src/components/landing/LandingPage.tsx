@@ -2,11 +2,13 @@
 
 import Link from "next/link";
 import Image from "next/image";
+import { useState } from "react";
 import { motion, useReducedMotion } from "framer-motion";
-import { ArrowRight, ArrowDown, CheckCircle2, Sparkles, HeartHandshake, Home, FileText, Atom, Phone } from "lucide-react";
+import { ArrowRight, ArrowDown, ArrowLeft, CheckCircle2, Sparkles, HeartHandshake, Home, FileText, Atom, Phone } from "lucide-react";
 import { SERVICES, APP_NAME } from "@/lib/constants";
 import { useAuthStore } from "@/store/authStore";
 import { useT } from "@/store/localeStore";
+import { WhatsAppSupportWidget } from "@/components/ui/WhatsAppSupportWidget";
 
 // Social brand icons — lucide-react removed these, using inline SVGs
 function IgIcon({ className, style }: { className?: string; style?: React.CSSProperties }) {
@@ -25,6 +27,20 @@ function FbIcon({ className, style }: { className?: string; style?: React.CSSPro
     </svg>
   );
 }
+function YtIcon({ className, style }: { className?: string; style?: React.CSSProperties }) {
+  return (
+    <svg className={className} style={style} viewBox="0 0 24 24" fill="currentColor">
+      <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z" />
+    </svg>
+  );
+}
+function WaIcon({ className, style }: { className?: string; style?: React.CSSProperties }) {
+  return (
+    <svg className={className} style={style} viewBox="0 0 24 24" fill="currentColor">
+      <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413z" />
+    </svg>
+  );
+}
 
 
 // ── Brass Line ───────────────────────────────────────────────────
@@ -33,26 +49,83 @@ function BrassLine() {
 }
 
 // ── Data ─────────────────────────────────────────────────────────
-const MARQUEE_ITEMS = [
-  "शास्त्रीय योग", "Classical Hatha", "Vedic Astrology", "Pranayama", "KP System",
-  "Dhyana", "Kundli Reading", "Surya Namaskar", "Jyotish Darshan", "Yoga Nidra",
+const MARQUEE_EN = [
+  "Birth Chart Reading", "Group Yoga Classes", "Horoscope Matching",
+  "Vastu Consultation", "Auspicious Timing (Shubh Muhurat)", "Jyotish Vidya",
+  "Online Personal Yoga", "In-Person Personal Yoga", "Scriptural Teachings",
+];
+const MARQUEE_HI = [
+  "जन्म कुंडली विश्लेषण", "समूह योग कक्षाएँ", "विवाह कुंडली मिलान",
+  "वास्तु परामर्श", "शुभ मुहूर्त", "ज्योतिष विद्या",
+  "ऑनलाइन व्यक्तिगत योग", "व्यक्तिगत योग (आमने-सामने)", "शास्त्रीय शिक्षण",
 ];
 
-const YOGA_COURSES = [
+const FEATURED_SLIDES = [
   {
-    id: "01", duration: "1 Month", hindi: "एक महीना", tagline: "Foundation",
-    fee: "₹2,500", serial: "No. 001",
-    teaches: ["Surya Namaskar — 12 forms", "Anulom Vilom & Bhramari", "Basic Dhyana", "Foundational asanas", "Sattvic diet principles"],
+    src: "/SecondBg.avif",
+    alt: "Ancient wisdom, living practice",
+    caption: "Ancient wisdom, living practice",
+    captionHi: "प्राचीन ज्ञान, जीवित परंपरा",
+    sub: "Shastriya Yogshala is more than modern fitness yoga — it is a sincere effort to preserve, practice, and carry forward the traditional wisdom of yoga rooted in Patanjali's Yoga Sutras.",
+    subHi: "शास्त्रीय योगशाला आधुनिक फिटनेस योग से कहीं अधिक है — यह पतंजलि के योग सूत्रों में निहित शास्त्रीय परंपरा को संरक्षित करने, अभ्यास करने और आगे बढ़ाने का एक सच्चा प्रयास है।",
   },
   {
-    id: "02", duration: "3 Months", hindi: "तीन महीने", tagline: "Deepening",
-    fee: "₹6,500", serial: "No. 002", featured: true,
-    teaches: ["Intermediate sequences", "Nadi Shodhana Pranayama", "Chakra awareness", "Yoga Nidra", "Yoga Sutras intro", "Mudra & Bandha"],
+    src: "/SecondBgtwo.avif",
+    alt: "Classical yoga — group practice",
+    caption: "Community Practice",
+    captionHi: "सामुदायिक अभ्यास",
+    sub: "Join our group yoga classes — 7 days a week, no weekly off. Classical yoga in a supportive community setting, from ₹1,500 per month.",
+    subHi: "हमारी समूह योग कक्षाओं में शामिल हों — सप्ताह में 7 दिन, कोई साप्ताहिक अवकाश नहीं। ₹1,500 प्रति माह से।",
   },
   {
-    id: "03", duration: "6 Months", hindi: "छः महीने", tagline: "Mastery",
-    fee: "₹11,000", serial: "No. 003",
-    teaches: ["Advanced asanas", "Complete Pranayama (8 types)", "Jyotish & yoga integration", "Teaching methodology", "Samkhya philosophy"],
+    src: "/SecondBgthree.avif",
+    alt: "Online personal yoga classes",
+    caption: "Daily Personal Practice",
+    captionHi: "दैनिक व्यक्तिगत अभ्यास",
+    sub: "One-on-one online yoga classes — daily, 1 hour, live. Fully personalized classical yoga at your convenience.",
+    subHi: "ऑनलाइन एकांत योग कक्षाएँ — प्रतिदिन, 1 घंटा, लाइव। आपकी सुविधा पर पूरी तरह से व्यक्तिगत शास्त्रीय योग।",
+  },
+  {
+    src: "/YogaImage4.avif",
+    alt: "Personal yoga at your home",
+    caption: "Yoga at Your Doorstep",
+    captionHi: "आपके द्वार पर योग",
+    sub: "In-person one-on-one classical yoga at your home or chosen location. Your teacher comes to you.",
+    subHi: "आपके घर या चुने हुए स्थान पर आमने-सामने शास्त्रीय योग। आपका शिक्षक आपके पास आता है।",
+  },
+];
+
+// ── 3 Yoga program type cards shown on landing page ──────────────
+const YOGA_TYPE_CARDS = [
+  {
+    id: "01", serial: "No. 001",
+    name: "Group Yoga", nameHi: "समूह योग",
+    tagline: "Community · Classical · 7 Days", taglineHi: "सामुदायिक · शास्त्रीय · 7 दिन",
+    from: "₹1,500 / month", fromHi: "₹1,500 / माह से",
+    image: "/YogaImage4.avif", href: "/yoga/group",
+    badge: "Most Affordable", badgeHi: "सबसे किफायती",
+    features: ["Daily classes, 7 days a week", "No weekly off", "1M / 3M / 6M / 1Y plans"],
+    featuresHi: ["प्रतिदिन कक्षाएँ, 7 दिन", "कोई साप्ताहिक अवकाश नहीं", "1M / 3M / 6M / 1Y योजनाएँ"],
+  },
+  {
+    id: "02", serial: "No. 002",
+    name: "Online Personal Yoga", nameHi: "ऑनलाइन व्यक्तिगत योग",
+    tagline: "Live · 1 Hour Daily · One-on-One", taglineHi: "लाइव · 1 घंटा प्रतिदिन · एकांत",
+    from: "₹10,000 / month", fromHi: "₹10,000 / माह से",
+    image: "/YogaImage5.avif", href: "/yoga/online-personal",
+    badge: "Most Flexible", badgeHi: "सबसे लचीला",
+    features: ["1-hour live session daily", "Fully personalized plan", "1M / 3M / 6M / 1Y plans"],
+    featuresHi: ["प्रतिदिन 1 घंटे का लाइव सत्र", "पूरी तरह व्यक्तिगत योजना", "1M / 3M / 6M / 1Y योजनाएँ"],
+  },
+  {
+    id: "03", serial: "No. 003",
+    name: "Personal Yoga (In-Person)", nameHi: "व्यक्तिगत योग (आमने-सामने)",
+    tagline: "At Your Home · One-on-One", taglineHi: "आपके घर पर · एकांत",
+    from: "₹15,000 / month", fromHi: "₹15,000 / माह से",
+    image: "/YogaImage1.jpg", href: "/yoga/personal",
+    badge: "Most Personal", badgeHi: "सबसे व्यक्तिगत",
+    features: ["Teacher comes to your home", "Hands-on corrections daily", "1M / 3M / 6M / 12M plans"],
+    featuresHi: ["शिक्षक आपके घर आते हैं", "प्रतिदिन हाथों से सुधार", "1M / 3M / 6M / 12M योजनाएँ"],
   },
 ];
 
@@ -61,6 +134,8 @@ const SERVICE_ICONS: Record<string, React.ElementType> = { Sparkles, HeartHandsh
 const SOCIAL = [
   { label: "Instagram", handle: "@shastriyayogshala", href: "https://instagram.com/shastriyayogshala", Icon: IgIcon, color: "#E1306C" },
   { label: "Facebook", handle: "Shastriya Yogshala", href: "https://facebook.com/shastriyayogshala", Icon: FbIcon, color: "#1877F2" },
+  { label: "YouTube", handle: "@ShastriyaYogshala", href: "https://www.youtube.com/@ShastriyaYogshala", Icon: YtIcon, color: "#FF0000" },
+  { label: "WhatsApp", handle: "Chat with us", href: "https://wa.me/917300530090", Icon: WaIcon, color: "#25D366" },
 ];
 
 function useRise() {
@@ -79,6 +154,11 @@ export function LandingPage() {
   const isHi = locale === "hi";
   const bookHref = user ? "/dashboard" : "/signup";
   const rise = useRise();
+  const MARQUEE_ITEMS = isHi ? MARQUEE_HI : MARQUEE_EN;
+  const [slideIdx, setSlideIdx] = useState(0);
+  const [helpModalOpen, setHelpModalOpen] = useState(false);
+  const prevSlide = () => setSlideIdx((i) => (i - 1 + FEATURED_SLIDES.length) % FEATURED_SLIDES.length);
+  const nextSlide = () => setSlideIdx((i) => (i + 1) % FEATURED_SLIDES.length);
 
   return (
     <main style={{ background: "var(--forest)" }}>
@@ -109,7 +189,7 @@ export function LandingPage() {
             style={{ background: "rgba(201,162,39,0.08)", border: "1px solid var(--brass-hairline)", color: "var(--cream-muted)" }}>
             <span className="w-1.5 h-1.5 rounded-full" style={{ background: "var(--brass)" }} />
             <span className="eyebrow tracking-widest text-[11px]">
-              {isHi ? "शास्त्रीय योगशाला · ऋषिकेश, भारत · स्थापित 2012" : "Shastriya Yogshala · Rishikesh, India · Est. 2012"}
+              {"शास्त्रीय योगशाला · ब्रजभूमि, भारत · स्थापित 2024"}
             </span>
           </div>
         </motion.div>
@@ -125,18 +205,18 @@ export function LandingPage() {
           </motion.p>
         </div>
 
-        {/* ── CTA row ── */}
+        {/* ── CTA row — Explore Courses first, Book Consultancy second ── */}
         <motion.div {...rise(0.3)} className="relative z-10 flex flex-col sm:flex-row gap-4 items-center justify-center">
-          <Link href={bookHref}>
+          <Link href="/#yoga">
             <button className="flex items-center gap-2 px-8 py-3.5 rounded-full text-sm font-semibold transition-all duration-300 hover:scale-[1.03] shadow-[0_4px_20px_rgba(201,162,39,0.25)]"
               style={{ background: "var(--brass)", color: "var(--forest-deep)" }}>
-              {isHi ? "सत्र बुक करें" : "Book a Session"} <ArrowRight className="h-4 w-4" />
+              {isHi ? "पाठ्यक्रम देखें" : "Explore Courses"} <ArrowRight className="h-4 w-4" />
             </button>
           </Link>
-          <Link href="/#yoga">
+          <Link href={bookHref}>
             <button className="flex items-center gap-2 px-8 py-3.5 rounded-full text-sm font-semibold transition-all duration-300 hover:bg-[var(--brass-soft)]"
               style={{ border: "1px solid var(--brass-hairline)", color: "var(--brass)" }}>
-              {t.landing.exploreCourses}
+              {isHi ? "परामर्श बुक करें" : "Book Consultancy"}
             </button>
           </Link>
         </motion.div>
@@ -159,27 +239,58 @@ export function LandingPage() {
 
       <BrassLine />
 
-      {/* ══ 2. FEATURED VISUAL ════════════════════════════════════ */}
-      <section className="relative h-[480px] sm:h-[560px] overflow-hidden">
+      {/* ══ 2. FEATURED VISUAL — CAROUSEL ═════════════════════════ */}
+      <section className="relative h-[480px] sm:h-[560px] overflow-hidden group">
         {/* bg gradient fallback */}
         <div className="absolute inset-0" style={{ background: "linear-gradient(135deg, #0a1711 0%, #1f6f4f 60%, #0d1f17 100%)" }} />
 
-        {/* SecondBg background image */}
-        <Image src="/SecondBg.avif" alt="Ancient wisdom, living practice" fill className="object-cover img-editorial" sizes="100vw" priority />
+        {/* Slide images */}
+        {FEATURED_SLIDES.map((slide, i) => (
+          <div key={i} className="absolute inset-0 transition-opacity duration-700" style={{ opacity: i === slideIdx ? 1 : 0, pointerEvents: i === slideIdx ? "auto" : "none" }}>
+            <Image src={slide.src} alt={slide.alt} fill className="object-cover img-editorial" sizes="100vw" priority={i === 0} />
+          </div>
+        ))}
 
-        {/* Forest-to-transparent gradient overlay for text readability */}
+        {/* Gradient overlays */}
         <div className="absolute inset-0" style={{ background: "linear-gradient(to right, rgba(10,23,17,0.88) 0%, rgba(10,23,17,0.55) 55%, rgba(10,23,17,0.15) 100%)" }} />
-
-        {/* Dark vignette at bottom */}
         <div className="absolute inset-0" style={{ background: "linear-gradient(to top, rgba(10,23,17,0.7) 0%, transparent 50%)" }} />
 
         {/* Content overlay */}
-        <div className="relative h-full flex flex-col justify-end p-8 sm:p-12 lg:p-16">
-          <p className="eyebrow mb-2">No. 001 — Featured</p>
-          <p className="script text-[clamp(1.5rem,4vw,2.5rem)]">Ancient wisdom, living practice</p>
-          <p className="mt-2 text-sm max-w-sm" style={{ color: "var(--cream-muted)" }}>
-            Classical yoga as documented in Patanjali's Yoga Sutras — preserved, practiced, and passed forward.
+        <div className="relative h-full flex flex-col justify-end p-8 sm:p-12 lg:p-16 pb-16">
+          <p className="eyebrow mb-2">
+            No. {String(slideIdx + 1).padStart(3, "0")} — Featured
           </p>
+          <p className="script text-[clamp(1.5rem,4vw,2.5rem)]">
+            {isHi ? FEATURED_SLIDES[slideIdx].captionHi : FEATURED_SLIDES[slideIdx].caption}
+          </p>
+          <p className="mt-2 text-sm max-w-md leading-relaxed" style={{ color: "var(--cream-muted)" }}>
+            {isHi ? FEATURED_SLIDES[slideIdx].subHi : FEATURED_SLIDES[slideIdx].sub}
+          </p>
+        </div>
+
+        {/* Prev / Next arrow buttons */}
+        <button onClick={prevSlide} aria-label="Previous slide"
+          className="absolute left-4 sm:left-8 top-1/2 -translate-y-1/2 z-10 w-10 h-10 rounded-full flex items-center justify-center transition-all duration-300 opacity-0 group-hover:opacity-100 hover:scale-110"
+          style={{ background: "rgba(10,23,17,0.6)", border: "1px solid var(--brass-hairline)", color: "var(--brass)" }}>
+          <ArrowLeft className="h-4 w-4" />
+        </button>
+        <button onClick={nextSlide} aria-label="Next slide"
+          className="absolute right-4 sm:right-8 top-1/2 -translate-y-1/2 z-10 w-10 h-10 rounded-full flex items-center justify-center transition-all duration-300 opacity-0 group-hover:opacity-100 hover:scale-110"
+          style={{ background: "rgba(10,23,17,0.6)", border: "1px solid var(--brass-hairline)", color: "var(--brass)" }}>
+          <ArrowRight className="h-4 w-4" />
+        </button>
+
+        {/* Dot indicators */}
+        <div className="absolute bottom-5 left-1/2 -translate-x-1/2 flex gap-2 z-10">
+          {FEATURED_SLIDES.map((_, i) => (
+            <button key={i} onClick={() => setSlideIdx(i)} aria-label={`Slide ${i + 1}`}
+              className="rounded-full transition-all duration-300"
+              style={{
+                width: i === slideIdx ? "24px" : "8px",
+                height: "8px",
+                background: i === slideIdx ? "var(--brass)" : "rgba(201,162,39,0.35)",
+              }} />
+          ))}
         </div>
       </section>
 
@@ -208,49 +319,51 @@ export function LandingPage() {
             <span className="script text-[clamp(1.5rem,4vw,3.5rem)]">Programs</span>
           </div>
           <p className="mt-4 max-w-xl text-sm leading-relaxed" style={{ color: "var(--cream-muted)" }}>
-            तीन स्तरों में उपलब्ध शास्त्रीय पाठ्यक्रम — नौसिखिए से उन्नत साधक तक।
+            तीन प्रकार के शास्त्रीय योग कार्यक्रम — समूह, ऑनलाइन व्यक्तिगत और व्यक्तिगत (आमने-सामने)।
           </p>
         </motion.div>
 
-        {/* Asymmetric grid: card1 tall (2 rows), card2 square, card3 square, card4 wide */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 auto-rows-[280px]">
+        {/* 3 yoga type cards + Daily 7 Days highlight */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 auto-rows-[300px]">
 
-          {/* Card 1 — tall (2 rows) with YogaImage1 on top half */}
+          {/* Card 1 — Group Yoga (tall, 2 rows) */}
           <motion.div {...rise(0.05)} className="group card-editorial rounded-2xl lg:row-span-2 relative cursor-pointer overflow-hidden"
             style={{ background: "linear-gradient(150deg, var(--emerald) 0%, var(--forest-deep) 100%)", border: "1px solid var(--brass-hairline)" }}>
             {/* Image — top 50% */}
             <div className="absolute inset-x-0 top-0 h-[50%]">
-              <Image
-                src="/YogaImage1.jpg"
-                alt="1 Month Yoga Program"
-                fill
-                className="object-cover"
-                sizes="(max-width: 768px) 100vw, 400px"
-              />
-              {/* gradient fade into card background */}
+              <Image src={YOGA_TYPE_CARDS[0].image} alt={YOGA_TYPE_CARDS[0].name} fill className="object-cover" sizes="(max-width: 768px) 100vw, 400px" />
               <div className="absolute inset-0" style={{ background: "linear-gradient(to bottom, transparent 40%, var(--emerald) 100%)" }} />
+            </div>
+            {/* Badge */}
+            <div className="absolute top-3 left-3 z-10">
+              <span className="text-[9px] font-bold px-2 py-1 rounded-full" style={{ background: "var(--brass)", color: "var(--forest-deep)" }}>
+                {isHi ? YOGA_TYPE_CARDS[0].badgeHi : YOGA_TYPE_CARDS[0].badge}
+              </span>
             </div>
             {/* Text — bottom 50% */}
             <div className="absolute inset-x-0 bottom-0 h-[50%] flex flex-col justify-between p-5">
               <div>
-                <p className="eyebrow mb-1" style={{ fontSize: "0.6rem" }}>{YOGA_COURSES[0].serial}</p>
-                <p className="heading text-2xl sm:text-3xl leading-tight">{YOGA_COURSES[0].duration}</p>
-                <p className="script text-lg mt-0.5">{YOGA_COURSES[0].hindi}</p>
+                <p className="eyebrow mb-1" style={{ fontSize: "0.6rem" }}>{YOGA_TYPE_CARDS[0].serial}</p>
+                <p className="heading text-2xl sm:text-3xl leading-tight">{isHi ? YOGA_TYPE_CARDS[0].nameHi : YOGA_TYPE_CARDS[0].name}</p>
+                <p className="script text-lg mt-0.5">{isHi ? YOGA_TYPE_CARDS[0].taglineHi : YOGA_TYPE_CARDS[0].tagline}</p>
               </div>
               <div>
                 <ul className="space-y-1 mb-4">
-                  {YOGA_COURSES[0].teaches.slice(0, 3).map((t, i) => (
+                  {(isHi ? YOGA_TYPE_CARDS[0].featuresHi : YOGA_TYPE_CARDS[0].features).map((f, i) => (
                     <li key={i} className="flex items-start gap-2 text-xs" style={{ color: "var(--cream-muted)" }}>
-                      <CheckCircle2 className="h-3 w-3 mt-0.5 shrink-0" style={{ color: "var(--brass)" }} /> {t}
+                      <CheckCircle2 className="h-3 w-3 mt-0.5 shrink-0" style={{ color: "var(--brass)" }} /> {f}
                     </li>
                   ))}
                 </ul>
                 <div className="flex items-center justify-between">
-                  <span className="heading text-xl" style={{ color: "var(--brass)" }}>{YOGA_COURSES[0].fee}</span>
-                  <Link href={bookHref}>
+                  <div>
+                    <p className="eyebrow text-[9px] mb-0.5">{isHi ? "से शुरू" : "Starting from"}</p>
+                    <span className="heading text-xl" style={{ color: "var(--brass)" }}>{isHi ? YOGA_TYPE_CARDS[0].fromHi : YOGA_TYPE_CARDS[0].from}</span>
+                  </div>
+                  <Link href={YOGA_TYPE_CARDS[0].href}>
                     <button className="flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-full transition-all duration-300 hover:gap-2.5"
                       style={{ border: "1px solid var(--brass-hairline)", color: "var(--brass)" }}>
-                      Enroll <ArrowRight className="h-3 w-3" />
+                      {isHi ? "विवरण देखें" : "View Details"} <ArrowRight className="h-3 w-3" />
                     </button>
                   </Link>
                 </div>
@@ -258,105 +371,117 @@ export function LandingPage() {
             </div>
           </motion.div>
 
-          {/* Card 2 — square, featured, with YogaImage2 on left half */}
+          {/* Card 2 — Online Personal Yoga (featured square) */}
           <motion.div {...rise(0.1)} className="group card-editorial rounded-2xl relative cursor-pointer overflow-hidden"
             style={{ background: "var(--forest-mid)", border: "1px solid var(--brass)" }}>
-            {/* Image — left 50% */}
             <div className="absolute inset-y-0 left-0 w-[50%]">
-              <Image
-                src="/YogaImage2.jpg"
-                alt="3 Month Yoga Program"
-                fill
-                className="object-cover"
-                sizes="200px"
-              />
-              {/* fade into card background */}
+              <Image src={YOGA_TYPE_CARDS[1].image} alt={YOGA_TYPE_CARDS[1].name} fill className="object-cover" sizes="200px" />
               <div className="absolute inset-0" style={{ background: "linear-gradient(to right, transparent 40%, var(--forest-mid) 100%)" }} />
             </div>
-            {/* Text — right 50% */}
+            {/* Badge */}
+            <div className="absolute top-3 right-3 z-10">
+              <span className="text-[9px] font-bold px-2 py-0.5 rounded-full" style={{ background: "var(--brass)", color: "var(--forest-deep)" }}>
+                {isHi ? YOGA_TYPE_CARDS[1].badgeHi : YOGA_TYPE_CARDS[1].badge}
+              </span>
+            </div>
             <div className="absolute inset-y-0 right-0 w-[50%] flex flex-col justify-between p-5">
               <div>
-                <div className="flex items-center justify-between mb-2">
-                  <p className="eyebrow" style={{ fontSize: "0.6rem" }}>{YOGA_COURSES[1].serial}</p>
-                  <span className="text-[9px] font-semibold px-2 py-0.5 rounded-full" style={{ background: "var(--brass)", color: "var(--forest-deep)" }}>Popular</span>
-                </div>
-                <p className="heading text-2xl leading-tight">{YOGA_COURSES[1].duration}</p>
-                <p className="script text-lg mt-0.5">{YOGA_COURSES[1].hindi}</p>
+                <p className="eyebrow mb-2" style={{ fontSize: "0.6rem" }}>{YOGA_TYPE_CARDS[1].serial}</p>
+                <p className="heading text-xl leading-tight">{isHi ? YOGA_TYPE_CARDS[1].nameHi : YOGA_TYPE_CARDS[1].name}</p>
+                <p className="script text-base mt-0.5">{isHi ? YOGA_TYPE_CARDS[1].taglineHi : YOGA_TYPE_CARDS[1].tagline}</p>
               </div>
               <div>
-                <span className="heading text-xl" style={{ color: "var(--brass)" }}>{YOGA_COURSES[1].fee}</span>
-                <Link href={bookHref}>
+                <div>
+                  <p className="eyebrow text-[9px] mb-0.5">{isHi ? "से शुरू" : "From"}</p>
+                  <span className="heading text-lg" style={{ color: "var(--brass)" }}>{isHi ? YOGA_TYPE_CARDS[1].fromHi : YOGA_TYPE_CARDS[1].from}</span>
+                </div>
+                <Link href={YOGA_TYPE_CARDS[1].href}>
                   <button className="mt-3 w-full py-2 rounded-full text-xs font-semibold transition-all duration-300 hover:opacity-90"
                     style={{ background: "var(--brass)", color: "var(--forest-deep)" }}>
-                    Enroll Now
+                    {isHi ? "विवरण देखें" : "View Details"}
                   </button>
                 </Link>
               </div>
             </div>
           </motion.div>
 
-          {/* Card 3 — square, with YogaImage3 on left half */}
+          {/* Card 3 — Personal In-Person (square) */}
           <motion.div {...rise(0.15)} className="group card-editorial rounded-2xl relative cursor-pointer overflow-hidden"
             style={{ background: "linear-gradient(135deg, var(--forest-mid) 0%, rgba(31,111,79,0.2) 100%)", border: "1px solid var(--brass-hairline)" }}>
-            {/* Image — left 50% */}
             <div className="absolute inset-y-0 left-0 w-[50%]">
-              <Image
-                src="/YogaImage3.jpg"
-                alt="6 Month Yoga Program"
-                fill
-                className="object-cover"
-                sizes="200px"
-              />
-              {/* fade into card background */}
+              <Image src={YOGA_TYPE_CARDS[2].image} alt={YOGA_TYPE_CARDS[2].name} fill className="object-cover" sizes="200px" />
               <div className="absolute inset-0" style={{ background: "linear-gradient(to right, transparent 40%, var(--forest-mid) 100%)" }} />
             </div>
-            {/* Text — right 50% */}
+            {/* Badge */}
+            <div className="absolute top-3 right-3 z-10">
+              <span className="text-[9px] font-bold px-2 py-0.5 rounded-full" style={{ background: "rgba(201,162,39,0.15)", color: "var(--brass)", border: "1px solid var(--brass)" }}>
+                {isHi ? YOGA_TYPE_CARDS[2].badgeHi : YOGA_TYPE_CARDS[2].badge}
+              </span>
+            </div>
             <div className="absolute inset-y-0 right-0 w-[50%] flex flex-col justify-between p-5">
               <div>
-                <p className="eyebrow mb-1" style={{ fontSize: "0.6rem" }}>{YOGA_COURSES[2].serial}</p>
-                <p className="heading text-2xl leading-tight">{YOGA_COURSES[2].duration}</p>
-                <p className="script text-lg mt-0.5">{YOGA_COURSES[2].hindi}</p>
+                <p className="eyebrow mb-1" style={{ fontSize: "0.6rem" }}>{YOGA_TYPE_CARDS[2].serial}</p>
+                <p className="heading text-xl leading-tight">{isHi ? YOGA_TYPE_CARDS[2].nameHi : YOGA_TYPE_CARDS[2].name}</p>
+                <p className="script text-base mt-0.5">{isHi ? YOGA_TYPE_CARDS[2].taglineHi : YOGA_TYPE_CARDS[2].tagline}</p>
               </div>
               <div>
-                <span className="heading text-xl" style={{ color: "var(--brass)" }}>{YOGA_COURSES[2].fee}</span>
-                <Link href={bookHref}>
+                <div>
+                  <p className="eyebrow text-[9px] mb-0.5">{isHi ? "से शुरू" : "From"}</p>
+                  <span className="heading text-lg" style={{ color: "var(--brass)" }}>{isHi ? YOGA_TYPE_CARDS[2].fromHi : YOGA_TYPE_CARDS[2].from}</span>
+                </div>
+                <Link href={YOGA_TYPE_CARDS[2].href}>
                   <button className="mt-3 w-full py-2 rounded-full text-xs font-semibold transition-all duration-300 hover:bg-[var(--brass-soft)]"
                     style={{ border: "1px solid var(--brass-hairline)", color: "var(--brass)" }}>
-                    Learn More
+                    {isHi ? "विवरण देखें" : "View Details"}
                   </button>
                 </Link>
               </div>
             </div>
           </motion.div>
 
-          {/* Card 4 — wide editorial (span 2 cols) */}
-          <motion.div {...rise(0.2)} className="group card-editorial rounded-2xl lg:col-span-2 relative cursor-pointer"
-            style={{ background: "linear-gradient(90deg, var(--forest-deep) 0%, rgba(31,111,79,0.12) 100%)", border: "1px solid var(--brass-hairline)" }}>
-            <div className="card-overlay-content h-full grid grid-cols-1 sm:grid-cols-2 gap-6 p-7 items-center">
-              <div>
-                <p className="eyebrow mb-3">Complete Journey</p>
-                <h3 className="heading text-2xl sm:text-3xl mb-3">All Three Courses</h3>
-                <p className="script text-lg">Transformation awaits</p>
-                <p className="mt-3 text-sm leading-relaxed" style={{ color: "var(--cream-muted)" }}>
-                  Enroll in the full 6-month mastery program and experience the complete arc of classical yogic transformation — body, breath, and mind.
+          {/* Card 4 — Daily 7 Days highlight (wide, col-span-2) */}
+          <motion.div {...rise(0.2)} className="group card-editorial rounded-2xl lg:col-span-2 relative cursor-pointer overflow-hidden"
+            style={{ background: "linear-gradient(90deg, var(--forest-deep) 0%, rgba(31,111,79,0.15) 100%)", border: "1px solid var(--brass-hairline)" }}>
+            {/* Subtle animated glow */}
+            <div className="absolute inset-0 pointer-events-none" style={{ background: "radial-gradient(ellipse 60% 80% at 10% 50%, rgba(37,211,102,0.07) 0%, transparent 70%)" }} />
+            <div className="card-overlay-content h-full flex flex-col sm:flex-row items-center justify-between gap-6 p-7">
+              <div className="flex-1">
+                <div className="flex items-center gap-2 mb-3">
+                  <span className="w-2 h-2 rounded-full animate-pulse" style={{ background: "#4ade80" }} />
+                  <span className="eyebrow text-[11px]" style={{ color: "#4ade80" }}>{isHi ? "प्रतिदिन उपलब्ध" : "Available Daily"}</span>
+                </div>
+                <h3 className="heading text-2xl sm:text-4xl mb-2">
+                  {isHi ? "प्रतिदिन योग कक्षाएँ — 7 दिन" : "Daily Yoga Classes — 7 Days a Week"}
+                </h3>
+                <p className="script text-xl mb-3" style={{ color: "var(--brass)" }}>
+                  {isHi ? "कोई साप्ताहिक अवकाश नहीं · निरंतर अभ्यास" : "No Weekly Off · Consistent Practice"}
+                </p>
+                <p className="text-sm leading-relaxed max-w-sm" style={{ color: "var(--cream-muted)" }}>
+                  {isHi
+                    ? "शास्त्रीय योगशाला में योग कभी रुकता नहीं — सोमवार से रविवार, हर दिन कक्षाएँ। असली परिवर्तन तब आता है जब अभ्यास नहीं रुकता।"
+                    : "At Shastriya Yogshala, yoga never stops — classes every single day of the week. Real transformation comes from uninterrupted practice."}
                 </p>
               </div>
-              <div className="flex flex-col gap-3">
-                {YOGA_COURSES.map(c => (
-                  <div key={c.id} className="flex items-center justify-between px-4 py-3 rounded-xl" style={{ background: "rgba(201,162,39,0.06)", border: "1px solid var(--brass-hairline)" }}>
-                    <span className="text-sm font-medium" style={{ color: "var(--cream)" }}>{c.duration}</span>
-                    <span className="heading text-sm" style={{ color: "var(--brass)" }}>{c.fee}</span>
-                  </div>
+              <div className="flex flex-col gap-3 w-full sm:w-auto sm:min-w-[200px]">
+                {YOGA_TYPE_CARDS.map((c) => (
+                  <Link key={c.id} href={c.href}>
+                    <div className="flex items-center justify-between px-4 py-3 rounded-xl transition-all duration-200 hover:scale-[1.02]"
+                      style={{ background: "rgba(201,162,39,0.06)", border: "1px solid var(--brass-hairline)" }}>
+                      <span className="text-xs font-medium" style={{ color: "var(--cream)" }}>{isHi ? c.nameHi : c.name}</span>
+                      <span className="heading text-xs" style={{ color: "var(--brass)" }}>{isHi ? c.fromHi : c.from}</span>
+                    </div>
+                  </Link>
                 ))}
-                <Link href={bookHref}>
-                  <button className="w-full py-3 rounded-full text-sm font-semibold mt-1 flex items-center justify-center gap-2 transition-all duration-300 hover:scale-[1.02]"
+                <Link href="/#yoga">
+                  <button className="w-full py-2.5 rounded-full text-xs font-semibold flex items-center justify-center gap-1.5 transition-all duration-300 hover:scale-[1.02]"
                     style={{ background: "var(--brass)", color: "var(--forest-deep)" }}>
-                    Begin Your Journey <ArrowRight className="h-4 w-4" />
+                    {isHi ? "सभी पाठ्यक्रम देखें" : "See All Programs"} <ArrowRight className="h-3 w-3" />
                   </button>
                 </Link>
               </div>
             </div>
           </motion.div>
+
         </div>
       </section>
 
@@ -365,10 +490,10 @@ export function LandingPage() {
       {/* ══ 5. JYOTISH — NUMBERED SERVICES ═══════════════════════ */}
       <section id="jyotish" className="py-20 sm:py-28 px-5 sm:px-8 lg:px-16 max-w-[1240px] mx-auto">
         <motion.div {...rise(0)} className="mb-14">
-          <p className="eyebrow mb-4">ज्योतिष</p>
+          <p className="eyebrow mb-4">ज्योतिष विद्या</p>
           <div className="flex flex-wrap items-baseline gap-x-4">
             <h2 className="heading text-[clamp(2.5rem,6vw,5rem)]">Jyotish</h2>
-            <span className="script text-[clamp(1.5rem,4vw,3.5rem)]">Darshan</span>
+            <span className="script text-[clamp(1.5rem,4vw,3.5rem)]">Vidya</span>
           </div>
           <p className="mt-3 heading text-base sm:text-lg" style={{ letterSpacing: "0.02em", lineHeight: "1.4", textTransform: "none" }}>
             <span style={{ color: "var(--cream-muted)", fontWeight: 400 }}>Shastriya Yogshala mein Jyotish ke dwara marg darshan</span>
@@ -379,10 +504,20 @@ export function LandingPage() {
         <div style={{ borderTop: "1px solid var(--brass-hairline)" }}>
           {SERVICES.map((service, i) => {
             const Icon = SERVICE_ICONS[service.icon] ?? Sparkles;
+            const targetUrl = user
+              ? `/dashboard?service=${encodeURIComponent(service.title)}`
+              : `/signup?service=${encodeURIComponent(service.title)}`;
             return (
               <motion.div key={service.title} {...rise(0.06 * i)}>
-                <Link href={bookHref}>
-                  <div className="service-row group flex items-center gap-6 py-5 px-4 rounded-xl cursor-pointer" style={{ borderBottom: "1px solid var(--brass-hairline)" }}>
+                <div
+                  className="service-row group flex items-center justify-between gap-3 sm:gap-6 py-5 px-4 rounded-xl transition-all duration-300 hover:bg-white/[0.02]"
+                  style={{ borderBottom: "1px solid var(--brass-hairline)" }}
+                >
+                  {/* Service link area */}
+                  <Link
+                    href={targetUrl}
+                    className="flex items-center gap-4 sm:gap-6 flex-1 min-w-0"
+                  >
                     {/* Index */}
                     <span className="eyebrow w-8 shrink-0" style={{ color: "var(--brass)", fontSize: "0.65rem" }}>
                       {String(i + 1).padStart(2, "0")}
@@ -392,51 +527,123 @@ export function LandingPage() {
                       <Icon className="h-4 w-4" style={{ color: "var(--emerald-soft)" }} />
                     </span>
                     {/* Title */}
-                    <span className="heading text-base sm:text-lg flex-1" style={{ letterSpacing: "-0.02em", lineHeight: "1.1" }}>
+                    <span className="heading text-base sm:text-lg flex-1 group-hover:text-[var(--brass)] transition-colors" style={{ letterSpacing: "-0.02em", lineHeight: "1.1" }}>
                       {service.title}
                     </span>
                     {/* Description — hidden on mobile */}
                     <span className="hidden md:block text-sm max-w-xs leading-relaxed" style={{ color: "var(--cream-muted)" }}>
                       {service.description}
                     </span>
-                    {/* Arrow */}
-                    <ArrowRight className="arrow-slide h-4 w-4 shrink-0" style={{ color: "var(--brass)" }} />
-                  </div>
-                </Link>
+                    {/* Arrow hint */}
+                    <ArrowRight className="hidden sm:block h-4 w-4 shrink-0 transition-transform duration-300 group-hover:translate-x-1" style={{ color: "var(--brass)" }} />
+                  </Link>
+
+                  {/* WhatsApp button — only triggers when clicked */}
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      e.preventDefault();
+                      setHelpModalOpen(true);
+                    }}
+                    className="shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold transition-all duration-300 hover:scale-105"
+                    style={{
+                      background: "linear-gradient(135deg, #25D366 0%, #128C7E 100%)",
+                      color: "#FFFFFF",
+                      boxShadow: "0 2px 10px rgba(37, 211, 102, 0.3)",
+                    }}
+                    title={isHi ? "व्हाट्सएप सहायता" : "WhatsApp Help"}
+                  >
+                    <WaIcon className="h-3.5 w-3.5 fill-white" />
+                    <span>{isHi ? "सहायता" : "Help"}</span>
+                  </button>
+                </div>
               </motion.div>
             );
           })}
         </div>
+
+        {/* Section bottom Help CTA */}
+        <motion.div {...rise(0.4)} className="mt-10 flex flex-col sm:flex-row items-center justify-between gap-4 p-5 sm:p-6 rounded-2xl border"
+          style={{ background: "rgba(201, 162, 39, 0.04)", borderColor: "var(--brass-hairline)" }}>
+          <div>
+            <h3 className="heading text-base sm:text-lg text-white mb-1">
+              {isHi ? "ज्योतिष एवं कुंडली मार्गदर्शन चाहिए?" : "Need Astrology or Kundali Guidance?"}
+            </h3>
+            <p className="text-xs sm:text-sm" style={{ color: "var(--cream-muted)" }}>
+              {isHi ? "व्हाट्सएप पर सीधे हमसे जुड़ें और तुरंत सहायता व परामर्श प्राप्त करें।" : "Chat directly with us on WhatsApp for instant guidance and personalized help."}
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={() => setHelpModalOpen(true)}
+            className="shrink-0 flex items-center gap-2 px-6 py-3 rounded-full text-xs sm:text-sm font-semibold transition-all duration-300 hover:scale-[1.03]"
+            style={{
+              background: "linear-gradient(135deg, #25D366 0%, #128C7E 100%)",
+              color: "#FFFFFF",
+              boxShadow: "0 4px 16px rgba(37, 211, 102, 0.35)",
+            }}
+          >
+            <WaIcon className="h-4 w-4 fill-white" />
+            <span>{isHi ? "सहायता एवं परामर्श लें" : "Get Help & Consultation"}</span>
+          </button>
+        </motion.div>
       </section>
 
       <BrassLine />
 
       {/* ══ 6. CLOSING CTA ════════════════════════════════════════ */}
       <section id="contact" className="grain-local relative py-24 sm:py-32 px-5 sm:px-8 text-center overflow-hidden" style={{ background: "var(--forest-deep)" }}>
+        {/* Background Image */}
+        <div className="pointer-events-none absolute inset-0 z-0">
+          <Image
+            src="/SecondBgthree.avif"
+            alt="Consultancy background"
+            fill
+            className="object-cover object-center opacity-25"
+            sizes="100vw"
+          />
+          <div
+            className="absolute inset-0"
+            style={{
+              background: "linear-gradient(180deg, rgba(10,23,17,0.88) 0%, rgba(10,23,17,0.72) 50%, rgba(10,23,17,0.92) 100%)",
+            }}
+          />
+        </div>
+
         {/* Radial glow */}
-        <div className="pointer-events-none absolute inset-0" style={{ background: "radial-gradient(ellipse 70% 60% at 50% 50%, rgba(44,138,99,0.14) 0%, transparent 70%)" }} />
+        <div className="pointer-events-none absolute inset-0 z-[1]" style={{ background: "radial-gradient(ellipse 70% 60% at 50% 50%, rgba(44,138,99,0.18) 0%, transparent 70%)" }} />
 
         <div className="relative z-10 max-w-3xl mx-auto">
           <motion.div {...rise(0)}>
-            <p className="eyebrow mb-6">परामर्श एवं योग सत्र</p>
+            <p className="eyebrow mb-6">{isHi ? "परामर्श एवं योग सत्र" : "Consultancy & Guidance"}</p>
             <h2 className="heading text-[clamp(2.5rem,7vw,6rem)] mb-3">
-              Book a Session
+              {isHi ? "परामर्श बुक करें" : "Book a Consultancy"}
             </h2>
             <p className="script text-[clamp(1.2rem,3vw,2rem)] mb-8">
               Ancient wisdom, living practice
             </p>
             <p className="mx-auto max-w-xl text-sm sm:text-base leading-relaxed mb-10" style={{ color: "var(--cream-muted)" }}>
-              किसी भी योग कोर्स, ज्योतिष परामर्श या आध्यात्मिक मार्गदर्शन के लिए सम्पर्क करें। सोमवार – शनिवार · प्रातः 6:00 – रात्रि 8:00
+              {isHi
+                ? "किसी भी योग कोर्स, ज्योतिष परामर्श या आध्यात्मिक मार्गदर्शन के लिए सम्पर्क करें।"
+                : "Get in touch for any yoga course, astrological consultation, or spiritual guidance."}
             </p>
 
             {/* Buttons */}
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-12">
-              <Link href={bookHref}>
-                <button className="px-8 py-3.5 rounded-full text-sm font-semibold transition-all duration-300 hover:opacity-90 hover:scale-[1.03]"
-                  style={{ background: "var(--brass)", color: "var(--forest-deep)" }}>
-                  Book a Consultation
-                </button>
-              </Link>
+              <button
+                type="button"
+                onClick={() => setHelpModalOpen(true)}
+                className="px-8 py-3.5 rounded-full text-sm font-semibold transition-all duration-300 hover:opacity-90 hover:scale-[1.03] flex items-center justify-center gap-2"
+                style={{
+                  background: "linear-gradient(135deg, #25D366 0%, #128C7E 100%)",
+                  color: "#FFFFFF",
+                  boxShadow: "0 6px 20px rgba(37, 211, 102, 0.35)",
+                }}
+              >
+                <WaIcon className="h-4 w-4 fill-white" />
+                <span>{isHi ? "सहायता एवं परामर्श" : "Get Help & Consultation"}</span>
+              </button>
               <Link href="/#yoga">
                 <button className="px-8 py-3.5 rounded-full text-sm font-semibold transition-all duration-300 hover:bg-[var(--brass-soft)]"
                   style={{ border: "1px solid var(--brass-hairline)", color: "var(--brass)" }}>
@@ -447,27 +654,49 @@ export function LandingPage() {
 
             {/* Social row */}
             <div className="flex items-center justify-center gap-6">
-              {SOCIAL.map(({ label, handle, href, Icon, color }) => (
-                <a key={label} href={href} target="_blank" rel="noopener noreferrer"
-                  className="group flex flex-col items-center gap-2 transition-all duration-300 hover:scale-105">
-                  <span className="w-11 h-11 rounded-full flex items-center justify-center transition-all duration-300"
-                    style={{ background: `${color}15`, border: "1px solid var(--brass-hairline)" }}>
-                    <Icon className="h-5 w-5" style={{ color }} />
-                  </span>
-                  <span className="hidden sm:block text-xs" style={{ color: "var(--cream-faint)" }}>{handle}</span>
-                </a>
-              ))}
+              {SOCIAL.map(({ label, handle, href, Icon, color }) => {
+                if (label === "WhatsApp") {
+                  return (
+                    <button
+                      key={label}
+                      type="button"
+                      onClick={() => setHelpModalOpen(true)}
+                      className="group flex flex-col items-center gap-2 transition-all duration-300 hover:scale-105"
+                      title={isHi ? "व्हाट्सएप सहायता" : "WhatsApp Support"}
+                    >
+                      <span className="w-11 h-11 rounded-full flex items-center justify-center transition-all duration-300"
+                        style={{ background: `${color}15`, border: "1px solid var(--brass-hairline)" }}>
+                        <Icon className="h-5 w-5" style={{ color }} />
+                      </span>
+                      <span className="hidden sm:block text-xs" style={{ color: "var(--cream-faint)" }}>{handle}</span>
+                    </button>
+                  );
+                }
+                return (
+                  <a key={label} href={href} target="_blank" rel="noopener noreferrer"
+                    className="group flex flex-col items-center gap-2 transition-all duration-300 hover:scale-105">
+                    <span className="w-11 h-11 rounded-full flex items-center justify-center transition-all duration-300"
+                      style={{ background: `${color}15`, border: "1px solid var(--brass-hairline)" }}>
+                      <Icon className="h-5 w-5" style={{ color }} />
+                    </span>
+                    <span className="hidden sm:block text-xs" style={{ color: "var(--cream-faint)" }}>{handle}</span>
+                  </a>
+                );
+              })}
             </div>
 
             {/* Footer note */}
             <p className="mt-14 text-xs" style={{ color: "var(--cream-faint)" }}>
               <span style={{ color: "var(--brass)" }}>◆</span>{" "}
-              {APP_NAME} · Rishikesh, India{" "}
+              {"शास्त्रीय योगशाला · ब्रजभूमि, भारत · स्थापित 2024"}{" "}
               <span style={{ color: "var(--brass)" }}>◆</span>
             </p>
           </motion.div>
         </div>
       </section>
+
+      {/* Floating Help & Support Widget without login */}
+      <WhatsAppSupportWidget isOpen={helpModalOpen} onOpenChange={setHelpModalOpen} />
 
     </main>
   );

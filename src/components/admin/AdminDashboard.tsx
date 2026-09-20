@@ -631,12 +631,13 @@ export function AdminDashboard() {
                             {b.userPhone}
                           </p>
                           <div className="mt-3 rounded-xl border border-[var(--border)] bg-[var(--bg-alt)] px-3.5 py-3 text-sm">
-                            <p className="font-semibold text-[var(--gold-ink)] mb-2">
-                              📅 Consultation Meeting: {b.date && b.date.length > 5 ? format(parseISO(b.date), "EEE, MMM d, yyyy") : b.date || "Assigned on confirmation"} · {b.timeSlot}
-                            </p>
-                            {b.serviceName && (
+                            {b.serviceName ? (
                               <p className="text-xs font-semibold text-[var(--ink)] mb-2 uppercase tracking-wide">
                                 Service: {b.serviceName}
+                              </p>
+                            ) : (
+                              <p className="font-semibold text-[var(--gold-ink)] mb-2">
+                                📅 Consultation Meeting: {b.date && b.date.length > 5 ? format(parseISO(b.date), "EEE, MMM d, yyyy") : b.date || "Assigned on confirmation"} · {b.timeSlot}
                               </p>
                             )}
                             {b.brideName ? (

@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { FormEvent, useState } from "react";
 import { motion } from "framer-motion";
 import toast from "react-hot-toast";
@@ -13,6 +13,13 @@ import { APP_NAME } from "@/lib/constants";
 
 export function LoginForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const service = searchParams ? searchParams.get("service") : null;
+  const redirectParam = searchParams ? searchParams.get("redirect") : null;
+  const targetPath = service
+    ? `/dashboard?service=${encodeURIComponent(service)}`
+    : redirectParam || "/dashboard";
+
   const { login, googleLogin } = useAuthStore();
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
@@ -34,7 +41,7 @@ export function LoginForm() {
       await login(email, password);
       toast.success("Welcome back 🙏");
       const profile = useAuthStore.getState().profile;
-      router.push(profile?.role === "admin" ? "/admin" : "/dashboard");
+      router.push(profile?.role === "admin" ? "/admin" : targetPath);
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : "Login failed";
       toast.error(msg.replace("Firebase: ", "").split("(")[0]);
@@ -53,7 +60,7 @@ export function LoginForm() {
       await googleLogin();
       toast.success("Welcome back 🙏");
       const profile = useAuthStore.getState().profile;
-      router.push(profile?.role === "admin" ? "/admin" : "/dashboard");
+      router.push(profile?.role === "admin" ? "/admin" : targetPath);
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : "Google sign-in failed";
       toast.error(msg.replace("Firebase: ", "").split("(")[0].trim());
@@ -117,7 +124,10 @@ export function LoginForm() {
 
       <p className="mt-5 text-center text-sm text-[var(--faint)]">
         New here?{" "}
-        <Link href="/signup" className="font-medium text-[var(--primary)] hover:underline">
+        <Link
+          href={service ? `/signup?service=${encodeURIComponent(service)}` : (redirectParam ? `/signup?redirect=${encodeURIComponent(redirectParam)}` : "/signup")}
+          className="font-medium text-[var(--primary)] hover:underline"
+        >
           Create account
         </Link>
       </p>

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { format, parseISO } from "date-fns";
 import Image from "next/image";
 import toast from "react-hot-toast";
@@ -56,19 +57,17 @@ import { paidChatId } from "@/lib/chat";
 import { subscribeConsultationFee } from "@/lib/settings";
 import { isMeetJoinUnlocked } from "@/lib/meet";
 import {
-  createBooking,
   createMatchHoroscopeBooking,
   createServiceBooking,
-  subscribeSlots,
   subscribeUserBookings,
   uploadPaymentScreenshot,
 } from "@/lib/bookings";
 import { isFirebaseConfigured } from "@/lib/firebase";
 import { useAuthStore } from "@/store/authStore";
 import { useT } from "@/store/localeStore";
-import type { Booking, Slot } from "@/lib/types";
+import type { Booking } from "@/lib/types";
 
-type Tab = "services" | "book" | "status";
+type Tab = "services" | "status";
 type ServiceStep = "form" | "payment";
 
 const serviceIcons: Record<string, LucideIcon> = {
@@ -102,11 +101,8 @@ export function UserDashboard() {
   const { t } = useT();
   const reduce = useReducedMotion();
   const [tab, setTab] = useState<Tab>("services");
-  const [slots, setSlots] = useState<Slot[]>([]);
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(isFirebaseConfigured());
-  const [selectedDate, setSelectedDate] = useState("");
-  const [selectedSlot, setSelectedSlot] = useState<Slot | null>(null);
   const [file, setFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
@@ -140,14 +136,12 @@ export function UserDashboard() {
     if (!isFirebaseConfigured() || !user) {
       return;
     }
-    const unsubSlots = subscribeSlots((s) => {
-      setSlots(s);
+    const unsubBookings = subscribeUserBookings(user.uid, (b) => {
+      setBookings(b);
       setLoading(false);
     });
-    const unsubBookings = subscribeUserBookings(user.uid, setBookings);
     const unsubFee = subscribeConsultationFee(setConsultationFee);
     return () => {
-      unsubSlots();
       unsubBookings();
       unsubFee();
     };
@@ -159,19 +153,6 @@ export function UserDashboard() {
     setFile(f);
   }
 
-  const availableDates = useMemo(() => {
-    const dates = new Set(slots.filter((s) => !s.isBooked).map((s) => s.date));
-    return Array.from(dates).sort();
-  }, [slots]);
-
-  const timesForDate = useMemo(
-    () =>
-      slots
-        .filter((s) => s.date === selectedDate && !s.isBooked)
-        .sort((a, b) => a.time.localeCompare(b.time)),
-    [slots, selectedDate]
-  );
-
   async function copyUpi() {
     try {
       await navigator.clipboard.writeText(UPI_ID);
@@ -180,48 +161,6 @@ export function UserDashboard() {
       window.setTimeout(() => setCopied(false), 2000);
     } catch {
       toast.error("Could not copy");
-    }
-  }
-
-  async function submitBooking() {
-    if (!user || !profile || !selectedSlot || !file) {
-      toast.error(t.dashboard.selectSlotScreenshot);
-      return;
-    }
-    setSubmitting(true);
-    try {
-      const screenshotUrl = await uploadPaymentScreenshot(user.uid, file);
-      await createBooking({
-        userId: user.uid,
-        userName: profile.name,
-        userPhone: profile.phone,
-        date: selectedSlot.date,
-        timeSlot: selectedSlot.time,
-        slotId: selectedSlot.id,
-        amount: consultationFee,
-        screenshotUrl,
-      });
-      toast.success(t.dashboard.bookingSubmitted);
-      setSelectedSlot(null);
-      setSelectedDate("");
-      handleFile(null);
-      setTab("status");
-      setPaidChatOpen(true);
-    } catch (err: unknown) {
-      console.error(err);
-      const msg = err instanceof Error ? err.message : "Could not submit booking";
-      if (
-        msg.toLowerCase().includes("permission") ||
-        msg.toLowerCase().includes("unauthorized")
-      ) {
-        toast.error(t.dashboard.uploadBlocked);
-      } else if (msg.toLowerCase().includes("storage")) {
-        toast.error(t.dashboard.storageFailed);
-      } else {
-        toast.error(msg.slice(0, 120) || "Could not submit booking");
-      }
-    } finally {
-      setSubmitting(false);
     }
   }
 
@@ -239,6 +178,24 @@ export function UserDashboard() {
     setServiceNote("");
     handleFile(null);
   }
+
+  const searchParams = useSearchParams();
+  const serviceParam = searchParams ? searchParams.get("service") : null;
+
+  useEffect(() => {
+    if (!serviceParam) return;
+    setTab("services");
+    const norm = serviceParam.toLowerCase().replace(/[^a-z0-9]/g, "");
+    const match = DASHBOARD_SERVICES.find((s) => {
+      const sNorm = s.title.toLowerCase().replace(/[^a-z0-9]/g, "");
+      return sNorm === norm || sNorm.includes(norm) || norm.includes(sNorm);
+    });
+    if (match) {
+      openService(match.title, match.action);
+    } else {
+      openService(serviceParam, "book");
+    }
+  }, [serviceParam, profile]);
 
   function resetServiceRequest() {
     setSelectedService(null);
@@ -275,9 +232,6 @@ export function UserDashboard() {
         userId: user.uid, userName: profile.name, userPhone: profile.phone,
         amount: consultationFee, screenshotUrl,
         ...matchDetails,
-        consultationDate: selectedSlot?.date,
-        consultationTime: selectedSlot?.time,
-        slotId: selectedSlot?.id,
         note: serviceNote.trim() || undefined,
       });
       toast.success(t.dashboard.requestSubmitted);
@@ -324,9 +278,6 @@ export function UserDashboard() {
         dob: birthDetails.dob,
         birthPlace: birthDetails.place.trim(),
         birthTime: birthDetails.time,
-        consultationDate: selectedSlot?.date,
-        consultationTime: selectedSlot?.time,
-        slotId: selectedSlot?.id,
         note: serviceNote.trim() || undefined,
       });
       toast.success(t.dashboard.requestSubmitted);
@@ -350,9 +301,8 @@ export function UserDashboard() {
     }
   }
 
-  const tabs: { id: Tab; label: string; icon: typeof Calendar }[] = [
+  const tabs: { id: Tab; label: string; icon: typeof LayoutGrid }[] = [
     { id: "services", label: t.dashboard.tabServices, icon: LayoutGrid },
-    { id: "book", label: t.dashboard.tabBook, icon: Calendar },
     { id: "status", label: t.dashboard.tabBookings, icon: History },
   ];
 
@@ -514,60 +464,6 @@ export function UserDashboard() {
                         onChange={(e) => setMatchDetails({ ...matchDetails, groomBirthTime: e.target.value })} />
                     </div>
 
-                    {/* Optional Consultation Slot Selection */}
-                    <div className="mb-6 rounded-xl border border-[var(--border)] bg-[var(--bg-alt)] p-4">
-                      <p className="font-semibold text-sm text-[var(--ink)] mb-2 flex items-center gap-2">
-                        📅 Select Preferred Meeting Slot (Optional)
-                      </p>
-                      {availableDates.length > 0 ? (
-                        <div className="space-y-3">
-                          <div className="flex flex-wrap gap-2">
-                            {availableDates.map((date) => (
-                              <button
-                                key={date}
-                                type="button"
-                                onClick={() => { setSelectedDate(date); setSelectedSlot(null); }}
-                                className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors ${
-                                  selectedDate === date
-                                    ? "border-[var(--primary)] bg-[var(--primary)] text-[var(--ink)]"
-                                    : "border-[var(--border)] bg-[var(--surface)] text-[var(--body)]"
-                                }`}
-                              >
-                                {date}
-                              </button>
-                            ))}
-                          </div>
-                          {selectedDate && timesForDate.length > 0 && (
-                            <div className="flex flex-wrap gap-2 pt-2 border-t border-[var(--border)]">
-                              {timesForDate.map((slot) => (
-                                <button
-                                  key={slot.id}
-                                  type="button"
-                                  onClick={() => setSelectedSlot(slot)}
-                                  className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors ${
-                                    selectedSlot?.id === slot.id
-                                      ? "border-[var(--gold)] bg-[var(--gold)] text-[var(--ink)]"
-                                      : "border-[var(--border)] bg-[var(--surface)] text-[var(--body)]"
-                                  }`}
-                                >
-                                  {slot.time}
-                                </button>
-                              ))}
-                            </div>
-                          )}
-                          {selectedSlot && (
-                            <p className="text-xs text-[var(--gold-ink)] font-semibold mt-1">
-                              Selected Slot: {selectedSlot.date} at {selectedSlot.time}
-                            </p>
-                          )}
-                        </div>
-                      ) : (
-                        <p className="text-xs text-[var(--faint)]">
-                          No fixed slots available right now. Astrologer will assign meeting time upon confirmation.
-                        </p>
-                      )}
-                    </div>
-
                     {/* Note / Specific Questions */}
                     <div className="mb-6">
                       <label className="mb-1.5 block text-sm font-medium text-[var(--ink)]">
@@ -606,60 +502,6 @@ export function UserDashboard() {
                         onChange={(e) => setBirthDetails({ ...birthDetails, time: e.target.value })} />
                     </div>
 
-                    {/* Optional Consultation Slot Selection */}
-                    <div className="mt-4 mb-4 rounded-xl border border-[var(--border)] bg-[var(--bg-alt)] p-4">
-                      <p className="font-semibold text-sm text-[var(--ink)] mb-2 flex items-center gap-2">
-                        📅 Select Preferred Meeting Slot (Optional)
-                      </p>
-                      {availableDates.length > 0 ? (
-                        <div className="space-y-3">
-                          <div className="flex flex-wrap gap-2">
-                            {availableDates.map((date) => (
-                              <button
-                                key={date}
-                                type="button"
-                                onClick={() => { setSelectedDate(date); setSelectedSlot(null); }}
-                                className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors ${
-                                  selectedDate === date
-                                    ? "border-[var(--primary)] bg-[var(--primary)] text-[var(--ink)]"
-                                    : "border-[var(--border)] bg-[var(--surface)] text-[var(--body)]"
-                                }`}
-                              >
-                                {date}
-                              </button>
-                            ))}
-                          </div>
-                          {selectedDate && timesForDate.length > 0 && (
-                            <div className="flex flex-wrap gap-2 pt-2 border-t border-[var(--border)]">
-                              {timesForDate.map((slot) => (
-                                <button
-                                  key={slot.id}
-                                  type="button"
-                                  onClick={() => setSelectedSlot(slot)}
-                                  className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors ${
-                                    selectedSlot?.id === slot.id
-                                      ? "border-[var(--gold)] bg-[var(--gold)] text-[var(--ink)]"
-                                      : "border-[var(--border)] bg-[var(--surface)] text-[var(--body)]"
-                                  }`}
-                                >
-                                  {slot.time}
-                                </button>
-                              ))}
-                            </div>
-                          )}
-                          {selectedSlot && (
-                            <p className="text-xs text-[var(--gold-ink)] font-semibold mt-1">
-                              Selected Slot: {selectedSlot.date} at {selectedSlot.time}
-                            </p>
-                          )}
-                        </div>
-                      ) : (
-                        <p className="text-xs text-[var(--faint)]">
-                          No fixed slots available right now. Astrologer will assign meeting time upon confirmation.
-                        </p>
-                      )}
-                    </div>
-
                     {/* Note / Specific Questions */}
                     <div className="mb-6">
                       <label className="mb-1.5 block text-sm font-medium text-[var(--ink)]">
@@ -691,11 +533,6 @@ export function UserDashboard() {
 
                     {/* Summary */}
                     <div className="mb-5 rounded-xl border border-[var(--border)] bg-[var(--bg-alt)] px-4 py-3 text-sm text-[var(--body)]">
-                      {selectedSlot && (
-                        <p className="mb-2 pb-2 border-b border-[var(--border)] text-xs text-[var(--gold-ink)] font-semibold">
-                          📅 Meeting Consultation: {selectedSlot.date} at {selectedSlot.time}
-                        </p>
-                      )}
                       {selectedService === "Match Horoscope" ? (
                         <>
                           <p><span className="text-[var(--faint)]">Bride:</span> {matchDetails.brideName}, Age {matchDetails.brideAge}, DOB {matchDetails.brideDob} · {matchDetails.brideBirthTime}</p>
@@ -762,201 +599,6 @@ export function UserDashboard() {
           </motion.div>
         )}
 
-        {tab === "book" && (
-          <motion.div key="book" {...fade} className="w-full space-y-6">
-            <section className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-5 shadow-[var(--shadow-sm)] sm:p-6">
-              <h2 className="mb-4 flex items-center gap-2 font-display text-lg font-semibold text-[var(--ink)]">
-                <span className="flex h-6 w-6 items-center justify-center rounded-full bg-[var(--primary)] text-xs text-[var(--ink)]">
-                  1
-                </span>
-                Choose a date
-              </h2>
-              {loading ? (
-                <div className="grid grid-cols-3 gap-2 sm:grid-cols-5">
-                  {Array.from({ length: 5 }).map((_, i) => (
-                    <Skeleton key={i} className="h-16" />
-                  ))}
-                </div>
-              ) : availableDates.length === 0 ? (
-                <EmptyState
-                  icon={<Calendar className="h-6 w-6" />}
-                  title={t.dashboard.noSlots}
-                  description={t.dashboard.noSlotsHint}
-                />
-              ) : (
-                <div className="grid grid-cols-3 gap-2 sm:grid-cols-4 md:grid-cols-6">
-                  {availableDates.map((date) => {
-                    const active = selectedDate === date;
-                    return (
-                      <button
-                        key={date}
-                        onClick={() => {
-                          setSelectedDate(date);
-                          setSelectedSlot(null);
-                        }}
-                        className={`rounded-xl border px-3 py-3 text-sm transition-all ${
-                          active
-                            ? "border-[var(--primary)] bg-[var(--primary)] text-[var(--ink)] shadow-[var(--shadow-sm)]"
-                            : "border-[var(--border)] bg-[var(--bg-alt)] text-[var(--body)] hover:border-[var(--gold)]/60"
-                        }`}
-                      >
-                        {format(parseISO(date), "MMM d")}
-                        <span
-                          className={`mt-0.5 block text-[10px] ${
-                            active ? "text-[var(--ink)]/70" : "text-[var(--faint)]"
-                          }`}
-                        >
-                          {format(parseISO(date), "EEE")}
-                        </span>
-                      </button>
-                    );
-                  })}
-                </div>
-              )}
-            </section>
-
-            <AnimatePresence>
-              {selectedDate && (
-                <motion.section
-                  initial={{ opacity: 0, y: 12 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0 }}
-                  className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-5 shadow-[var(--shadow-sm)] sm:p-6"
-                >
-                  <h2 className="mb-4 flex items-center gap-2 font-display text-lg font-semibold text-[var(--ink)]">
-                    <span className="flex h-6 w-6 items-center justify-center rounded-full bg-[var(--primary)] text-xs text-[var(--ink)]">
-                      2
-                    </span>
-                    Select a time
-                  </h2>
-                  <div className="flex flex-wrap gap-2">
-                    {timesForDate.map((slot) => {
-                      const active = selectedSlot?.id === slot.id;
-                      return (
-                        <motion.button
-                          key={slot.id}
-                          whileTap={{ scale: 0.96 }}
-                          onClick={() => setSelectedSlot(slot)}
-                          className={`min-h-[40px] rounded-xl px-4 py-2 text-sm font-medium transition-colors ${
-                            active
-                              ? "bg-[var(--primary)] text-[var(--ink)] shadow-[var(--shadow-sm)]"
-                              : "border border-[var(--border)] bg-[var(--bg-alt)] text-[var(--body)] hover:border-[var(--primary)]/40"
-                          }`}
-                        >
-                          {slot.time}
-                        </motion.button>
-                      );
-                    })}
-                  </div>
-                </motion.section>
-              )}
-            </AnimatePresence>
-
-            <AnimatePresence>
-              {selectedSlot && (
-                <motion.section
-                  initial={{ opacity: 0, y: 12 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0 }}
-                  className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-5 shadow-[var(--shadow-sm)] sm:p-6"
-                >
-                  <h2 className="mb-1 flex items-center gap-2 font-display text-lg font-semibold text-[var(--ink)]">
-                    <span className="flex h-6 w-6 items-center justify-center rounded-full bg-[var(--primary)] text-xs text-[var(--ink)]">
-                      3
-                    </span>
-                    Payment
-                  </h2>
-                  <p className="mb-5 text-sm text-[var(--faint)]">
-                    Pay ₹{consultationFee} via UPI, then upload the screenshot
-                  </p>
-                  <div className="grid gap-6 md:grid-cols-2">
-                    <div className="flex flex-col items-center rounded-xl border border-[var(--border)] bg-[var(--bg-alt)] p-5">
-                      <div className="relative h-44 w-44 overflow-hidden rounded-xl border border-[var(--border)] bg-white p-2 shadow-[var(--shadow-sm)]">
-                        <Image
-                          src={QR_CODE_URL}
-                          alt="UPI QR Code"
-                          fill
-                          className="object-contain"
-                          unoptimized
-                        />
-                      </div>
-                      <button
-                        onClick={copyUpi}
-                        className="mt-4 inline-flex items-center gap-2 rounded-lg border border-[var(--border-strong)] bg-[var(--surface)] px-3 py-1.5 text-sm text-[var(--ink)] transition-colors hover:border-[var(--primary)]"
-                      >
-                        <span className="text-[var(--gold-ink)]">{UPI_ID}</span>
-                        {copied ? (
-                          <Check className="h-3.5 w-3.5 text-[var(--sage)]" />
-                        ) : (
-                          <Copy className="h-3.5 w-3.5" />
-                        )}
-                      </button>
-                      <p className="mt-3 font-display text-2xl font-semibold text-[var(--ink)]">
-                        ₹{consultationFee}
-                      </p>
-                      <p className="mt-1 text-xs text-[var(--faint)]">
-                        {format(parseISO(selectedSlot.date), "MMM d, yyyy")} ·{" "}
-                        {selectedSlot.time}
-                      </p>
-                    </div>
-
-                    <div className="flex flex-col justify-center gap-4">
-                      <label
-                        htmlFor="screenshot"
-                        className="group flex cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed border-[var(--border-strong)] bg-[var(--bg-alt)] px-4 py-6 text-center transition-colors hover:border-[var(--primary)]"
-                      >
-                        {previewUrl ? (
-                          <span className="relative h-28 w-28 overflow-hidden rounded-lg border border-[var(--border)]">
-                            <Image
-                              src={previewUrl}
-                              alt="Preview"
-                              fill
-                              className="object-cover"
-                              unoptimized
-                            />
-                            <span className="absolute right-1 top-1 flex h-5 w-5 items-center justify-center rounded-full bg-[var(--sage)] text-white">
-                              <CheckCircle2 className="h-3.5 w-3.5" />
-                            </span>
-                          </span>
-                        ) : (
-                          <UploadCloud className="h-8 w-8 text-[var(--faint)] transition-colors group-hover:text-[var(--primary)]" />
-                        )}
-                        <span className="mt-3 text-sm font-medium text-[var(--ink)]">
-                          {t.dashboard.uploadScreenshot}
-                        </span>
-                        <span className="mt-1 text-xs text-[var(--faint)]">
-                          PNG or JPG, up to 10 MB
-                        </span>
-                        <input
-                          id="screenshot"
-                          type="file"
-                          accept="image/*"
-                          className="hidden"
-                          onChange={(e) =>
-                            handleFile(e.target.files?.[0] ?? null)
-                          }
-                        />
-                      </label>
-
-                      <Button
-                        onClick={submitBooking}
-                        loading={submitting}
-                        disabled={!file}
-                        className="w-full"
-                      >
-                        {t.dashboard.submitBooking}
-                      </Button>
-                      <p className="text-center text-xs text-[var(--faint)]">
-                        {t.dashboard.paymentNote}
-                      </p>
-                    </div>
-                  </div>
-                </motion.section>
-              )}
-            </AnimatePresence>
-          </motion.div>
-        )}
-
         {tab === "status" && (
           <motion.div key="status" {...fade} className="w-full space-y-3">
             {bookings.length === 0 ? (
@@ -965,7 +607,7 @@ export function UserDashboard() {
                 title={t.dashboard.noBookings}
                 description={t.dashboard.noBookingsHint}
                 action={
-                  <Button onClick={() => setTab("book")}>{t.dashboard.bookASession}</Button>
+                  <Button onClick={() => setTab("services")}>{t.dashboard.bookASession}</Button>
                 }
               />
             ) : (
