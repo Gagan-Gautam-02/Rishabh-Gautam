@@ -12,6 +12,7 @@ interface ButtonProps {
   disabled?: boolean;
   type?: "button" | "submit" | "reset";
   onClick?: React.MouseEventHandler<HTMLButtonElement>;
+  style?: React.CSSProperties;
 }
 
 const variants = {
@@ -39,10 +40,12 @@ export function Button({
   disabled,
   type = "button",
   onClick,
+  style,
 }: ButtonProps) {
   return (
     <motion.button
       type={type}
+      style={style}
       whileHover={{ scale: disabled || loading ? 1 : 1.02 }}
       whileTap={{ scale: disabled || loading ? 1 : 0.97 }}
       transition={{ type: "spring", stiffness: 400, damping: 25 }}

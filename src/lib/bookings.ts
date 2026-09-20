@@ -56,6 +56,8 @@ function mapBooking(id: string, data: Record<string, unknown>): Booking {
     groomBirthPlace: data.groomBirthPlace ? String(data.groomBirthPlace) : undefined,
     groomBirthTime: data.groomBirthTime ? String(data.groomBirthTime) : undefined,
     note: data.note ? String(data.note) : undefined,
+    paymentMethod: data.paymentMethod ? String(data.paymentMethod) : undefined,
+    razorpayPaymentId: data.razorpayPaymentId ? String(data.razorpayPaymentId) : undefined,
     createdAt: (data.createdAt as { toMillis?: () => number })?.toMillis?.() ?? Date.now(),
   };
 }
@@ -195,7 +197,7 @@ export async function createServiceBooking(input: {
   userName: string;
   userPhone: string;
   amount: number;
-  screenshotUrl: string;
+  screenshotUrl?: string;
   serviceName: string;
   birthName: string;
   dob: string;
@@ -205,6 +207,9 @@ export async function createServiceBooking(input: {
   consultationTime?: string;
   slotId?: string;
   note?: string;
+  paymentMethod?: string;
+  razorpayPaymentId?: string;
+  status?: Booking["status"];
 }) {
   const db = getFirebaseDb();
   const meetingDate = input.consultationDate || input.dob;
@@ -226,14 +231,16 @@ export async function createServiceBooking(input: {
     timeSlot: meetingTime,
     slotId: input.slotId || "",
     amount: input.amount,
-    screenshotUrl: input.screenshotUrl,
+    screenshotUrl: input.screenshotUrl || "",
     serviceName: input.serviceName,
     birthName: input.birthName,
     dob: input.dob,
     birthPlace: input.birthPlace,
     birthTime: input.birthTime,
     ...(input.note ? { note: input.note } : {}),
-    status: "pending",
+    ...(input.paymentMethod ? { paymentMethod: input.paymentMethod } : {}),
+    ...(input.razorpayPaymentId ? { razorpayPaymentId: input.razorpayPaymentId } : {}),
+    status: input.status || (input.razorpayPaymentId ? "confirmed" : "pending"),
     createdAt: serverTimestamp(),
   });
 
@@ -260,7 +267,7 @@ export async function createMatchHoroscopeBooking(input: {
   userName: string;
   userPhone: string;
   amount: number;
-  screenshotUrl: string;
+  screenshotUrl?: string;
   brideName: string;
   brideAge: string;
   brideDob: string;
@@ -275,6 +282,9 @@ export async function createMatchHoroscopeBooking(input: {
   consultationTime?: string;
   slotId?: string;
   note?: string;
+  paymentMethod?: string;
+  razorpayPaymentId?: string;
+  status?: Booking["status"];
 }) {
   const db = getFirebaseDb();
   const meetingDate = input.consultationDate || input.brideDob;
@@ -296,7 +306,7 @@ export async function createMatchHoroscopeBooking(input: {
     timeSlot: meetingTime,
     slotId: input.slotId || "",
     amount: input.amount,
-    screenshotUrl: input.screenshotUrl,
+    screenshotUrl: input.screenshotUrl || "",
     serviceName: "Match Horoscope",
     brideName: input.brideName,
     brideAge: input.brideAge,
@@ -309,7 +319,9 @@ export async function createMatchHoroscopeBooking(input: {
     groomBirthPlace: input.groomBirthPlace,
     groomBirthTime: input.groomBirthTime,
     ...(input.note ? { note: input.note } : {}),
-    status: "pending",
+    ...(input.paymentMethod ? { paymentMethod: input.paymentMethod } : {}),
+    ...(input.razorpayPaymentId ? { razorpayPaymentId: input.razorpayPaymentId } : {}),
+    status: input.status || (input.razorpayPaymentId ? "confirmed" : "pending"),
     createdAt: serverTimestamp(),
   });
 

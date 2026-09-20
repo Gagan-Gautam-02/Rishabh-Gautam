@@ -50,6 +50,8 @@ export interface Booking {
   groomBirthTime?: string;
   /** Optional user note / special question */
   note?: string;
+  paymentMethod?: string;
+  razorpayPaymentId?: string;
   createdAt: number;
 }
 
