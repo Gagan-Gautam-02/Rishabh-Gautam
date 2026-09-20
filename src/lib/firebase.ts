@@ -9,13 +9,22 @@ export const googleProvider = new GoogleAuthProvider();
 export const FIRESTORE_DATABASE_ID =
   process.env.NEXT_PUBLIC_FIREBASE_FIRESTORE_DATABASE_ID || "astrodata";
 
+const DEFAULT_FIREBASE_CONFIG = {
+  apiKey: "AIzaSyC6KQcoHN0UrhR_jTfYUcwyrTmfx6irLls",
+  authDomain: "rishabhgautam-8744a.firebaseapp.com",
+  projectId: "rishabhgautam-8744a",
+  storageBucket: "rishabhgautam-8744a.firebasestorage.app",
+  messagingSenderId: "733972848384",
+  appId: "1:733972848384:web:ce9f14b90ff5df1843dde5",
+};
+
 const firebaseConfig = {
-  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
-  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
-  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
-  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
-  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
-  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
+  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY || DEFAULT_FIREBASE_CONFIG.apiKey,
+  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN || DEFAULT_FIREBASE_CONFIG.authDomain,
+  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || DEFAULT_FIREBASE_CONFIG.projectId,
+  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET || DEFAULT_FIREBASE_CONFIG.storageBucket,
+  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID || DEFAULT_FIREBASE_CONFIG.messagingSenderId,
+  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID || DEFAULT_FIREBASE_CONFIG.appId,
 };
 
 function createFirebaseApp(): FirebaseApp {
@@ -56,8 +65,8 @@ export function getFirebaseStorage() {
 
 export function isFirebaseConfigured() {
   return Boolean(
-    process.env.NEXT_PUBLIC_FIREBASE_API_KEY &&
-      process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID &&
-      process.env.NEXT_PUBLIC_FIREBASE_API_KEY !== "your_api_key"
+    firebaseConfig.apiKey &&
+      firebaseConfig.projectId &&
+      firebaseConfig.apiKey !== "your_api_key"
   );
 }

@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
 import { useAuthStore } from "@/store/authStore";
 import { isFirebaseConfigured } from "@/lib/firebase";
+import { getAuthErrorMessage } from "@/lib/authErrors";
 import { APP_NAME } from "@/lib/constants";
 
 export function SignupForm() {
@@ -48,8 +49,7 @@ export function SignupForm() {
       toast.success("Account created! Welcome 🙏");
       router.push(targetPath);
     } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : "Signup failed";
-      toast.error(msg.replace("Firebase: ", "").split("(")[0].trim());
+      toast.error(getAuthErrorMessage(err));
     } finally {
       setLoading(false);
     }
@@ -66,8 +66,7 @@ export function SignupForm() {
       toast.success("Welcome 🙏");
       router.push(targetPath);
     } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : "Google sign-in failed";
-      toast.error(msg.replace("Firebase: ", "").split("(")[0].trim());
+      toast.error(getAuthErrorMessage(err));
     } finally {
       setGoogleLoading(false);
     }
