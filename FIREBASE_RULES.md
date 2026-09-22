@@ -76,7 +76,7 @@ service cloud.firestore {
         && (resource.data.userId == request.auth.uid || isAdmin());
       allow create: if isSignedIn()
         && request.resource.data.userId == request.auth.uid
-        && request.resource.data.status == 'pending';
+        && (request.resource.data.status == 'pending' || request.resource.data.status == 'confirmed');
       allow update: if isAdmin()
         || (isSignedIn()
           && resource.data.userId == request.auth.uid

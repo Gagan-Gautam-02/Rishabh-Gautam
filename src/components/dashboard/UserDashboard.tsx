@@ -285,7 +285,44 @@ export function UserDashboard() {
           setTab("status");
         } catch (err: unknown) {
           console.error("Booking creation after payment failed:", err);
-          toast.error("Payment received but booking could not be saved. Please contact support.");
+          // Fallback in case Firestore rules haven't updated or only allow 'pending'
+          try {
+            if (selectedService === "Match Horoscope") {
+              await createMatchHoroscopeBooking({
+                userId: user.uid,
+                userName: profile.name,
+                userPhone: profile.phone,
+                amount: amt,
+                paymentMethod: "razorpay",
+                razorpayPaymentId: rzpResult.razorpay_payment_id,
+                status: "pending",
+                ...matchDetails,
+                note: (serviceNote.trim() ? serviceNote.trim() + " | " : "") + `Razorpay Paid: ${rzpResult.razorpay_payment_id}`,
+              });
+            } else {
+              await createServiceBooking({
+                userId: user.uid,
+                userName: profile.name,
+                userPhone: profile.phone,
+                amount: amt,
+                paymentMethod: "razorpay",
+                razorpayPaymentId: rzpResult.razorpay_payment_id,
+                status: "pending",
+                serviceName: selectedService,
+                birthName: birthDetails.name.trim(),
+                dob: birthDetails.dob,
+                birthPlace: birthDetails.place.trim(),
+                birthTime: birthDetails.time,
+                note: (serviceNote.trim() ? serviceNote.trim() + " | " : "") + `Razorpay Paid: ${rzpResult.razorpay_payment_id}`,
+              });
+            }
+            toast.success("Payment verified! Request registered 🙏");
+            resetServiceRequest();
+            setTab("status");
+          } catch (retryErr: unknown) {
+            console.error("Retry booking creation failed:", retryErr);
+            toast.error("Payment received! Please note Payment ID: " + rzpResult.razorpay_payment_id);
+          }
         } finally {
           setPayingWithRazorpay(false);
         }
