@@ -729,137 +729,32 @@ export function UserDashboard() {
                       </div>
                     </div>
 
-                    {/* ── Payment Method Toggle ── */}
-                    <div className="mb-6 grid gap-3 sm:grid-cols-2">
-                      <button
-                        type="button"
-                        onClick={() => setPaymentMode("razorpay")}
-                        className={`p-4 rounded-xl border transition-all duration-200 text-left flex items-start justify-between gap-3 ${
-                          paymentMode === "razorpay"
-                            ? "border-[var(--brass)] bg-[var(--brass-soft)] shadow-md"
-                            : "border-[var(--border)] bg-[var(--bg-alt)] hover:border-[var(--brass-dim)]"
-                        }`}
+                    {/* ── Razorpay Online Payment ── */}
+                    <div className="rounded-xl border border-[var(--brass-hairline)] bg-[var(--bg-alt)] p-6 sm:p-8 text-center max-w-lg mx-auto">
+                      <p className="eyebrow text-xs mb-1">Total Contribution</p>
+                      <p className="font-display text-4xl sm:text-5xl font-bold text-[var(--brass)] mb-2">
+                        ₹{Number(customAmount) || 101}
+                      </p>
+                      <p className="text-xs sm:text-sm text-[var(--cream-muted)] mb-6 max-w-sm mx-auto">
+                        Instant confirmation via Razorpay. Supports UPI, Google Pay, PhonePe, Paytm, Debit/Credit Card & NetBanking.
+                      </p>
+                      <Button
+                        onClick={handleRazorpayPayment}
+                        loading={payingWithRazorpay}
+                        className="w-full py-4 rounded-xl text-base font-semibold shadow-lg transition-transform hover:scale-[1.02]"
+                        style={{
+                          background: "linear-gradient(135deg, #c9a227 0%, #b88e1a 100%)",
+                          color: "#0a1711",
+                          boxShadow: "0 6px 20px rgba(201, 162, 39, 0.3)",
+                        }}
                       >
-                        <div className="flex items-start gap-3">
-                          <div className="w-9 h-9 rounded-lg flex items-center justify-center bg-[var(--forest-mid)] border border-[var(--brass-hairline)] shrink-0">
-                            <Zap className="h-4 w-4 text-[#25D366]" />
-                          </div>
-                          <div>
-                            <div className="flex items-center gap-2">
-                              <span className="font-semibold text-sm text-[var(--ink)]">Razorpay Online</span>
-                              <span className="text-[9px] px-1.5 py-0.2 rounded bg-[#25D366]/20 text-[#25D366] font-bold">REALTIME</span>
-                            </div>
-                            <p className="text-xs text-[var(--cream-muted)] mt-1">
-                              UPI (GPay, PhonePe, Paytm), Cards, NetBanking
-                            </p>
-                          </div>
-                        </div>
-                        <div className={`w-4 h-4 mt-0.5 rounded-full border flex items-center justify-center shrink-0 ${
-                          paymentMode === "razorpay" ? "border-[var(--brass)] bg-[var(--brass)]" : "border-[var(--cream-faint)]"
-                        }`}>
-                          {paymentMode === "razorpay" && <div className="w-1.5 h-1.5 rounded-full bg-[var(--forest-deep)]" />}
-                        </div>
-                      </button>
-
-                      <button
-                        type="button"
-                        onClick={() => setPaymentMode("upi")}
-                        className={`p-4 rounded-xl border transition-all duration-200 text-left flex items-start justify-between gap-3 ${
-                          paymentMode === "upi"
-                            ? "border-[var(--brass)] bg-[var(--brass-soft)] shadow-md"
-                            : "border-[var(--border)] bg-[var(--bg-alt)] hover:border-[var(--brass-dim)]"
-                        }`}
-                      >
-                        <div className="flex items-start gap-3">
-                          <div className="w-9 h-9 rounded-lg flex items-center justify-center bg-[var(--forest-mid)] border border-[var(--brass-hairline)] shrink-0">
-                            <QrCode className="h-4 w-4 text-[var(--brass)]" />
-                          </div>
-                          <div>
-                            <span className="font-semibold text-sm text-[var(--ink)]">Direct UPI QR Code</span>
-                            <p className="text-xs text-[var(--cream-muted)] mt-1">
-                              Scan QR & upload payment screenshot
-                            </p>
-                          </div>
-                        </div>
-                        <div className={`w-4 h-4 mt-0.5 rounded-full border flex items-center justify-center shrink-0 ${
-                          paymentMode === "upi" ? "border-[var(--brass)] bg-[var(--brass)]" : "border-[var(--cream-faint)]"
-                        }`}>
-                          {paymentMode === "upi" && <div className="w-1.5 h-1.5 rounded-full bg-[var(--forest-deep)]" />}
-                        </div>
-                      </button>
+                        <CreditCard className="h-5 w-5 mr-2" />
+                        Pay ₹{Number(customAmount) || 101} & Book Now
+                      </Button>
+                      <p className="mt-4 text-[11px] text-[var(--cream-faint)] flex items-center justify-center gap-1.5">
+                        <Lock className="h-3 w-3" /> 256-bit Encrypted Secure Payment
+                      </p>
                     </div>
-
-                    {/* ── Mode 1: Razorpay Realtime ── */}
-                    {paymentMode === "razorpay" && (
-                      <div className="rounded-xl border border-[var(--brass-hairline)] bg-[var(--bg-alt)] p-6 sm:p-8 text-center max-w-lg mx-auto">
-                        <p className="eyebrow text-xs mb-1">Total Contribution</p>
-                        <p className="font-display text-4xl sm:text-5xl font-bold text-[var(--brass)] mb-2">
-                          ₹{Number(customAmount) || 101}
-                        </p>
-                        <p className="text-xs sm:text-sm text-[var(--cream-muted)] mb-6 max-w-sm mx-auto">
-                          Instant confirmation via Razorpay. Supports UPI, Google Pay, PhonePe, Paytm, Debit/Credit Card & NetBanking.
-                        </p>
-                        <Button
-                          onClick={handleRazorpayPayment}
-                          loading={payingWithRazorpay}
-                          className="w-full py-4 rounded-xl text-base font-semibold shadow-lg transition-transform hover:scale-[1.02]"
-                          style={{
-                            background: "linear-gradient(135deg, #c9a227 0%, #b88e1a 100%)",
-                            color: "#0a1711",
-                            boxShadow: "0 6px 20px rgba(201, 162, 39, 0.3)",
-                          }}
-                        >
-                          <CreditCard className="h-5 w-5 mr-2" />
-                          Pay ₹{Number(customAmount) || 101} & Book Now
-                        </Button>
-                        <p className="mt-4 text-[11px] text-[var(--cream-faint)] flex items-center justify-center gap-1.5">
-                          <Lock className="h-3 w-3" /> 256-bit Encrypted Secure Payment
-                        </p>
-                      </div>
-                    )}
-
-                    {/* ── Mode 2: Direct UPI QR Code ── */}
-                    {paymentMode === "upi" && (
-                      <div className="grid gap-6 md:grid-cols-2">
-                        <div className="flex flex-col items-center rounded-xl border border-[var(--border)] bg-[var(--bg-alt)] p-5">
-                          <div className="relative h-44 w-44 overflow-hidden rounded-xl border border-[var(--border)] bg-white p-2 shadow-[var(--shadow-sm)]">
-                            <Image src={QR_CODE_URL} alt="UPI QR Code" fill className="object-contain" unoptimized />
-                          </div>
-                          <button type="button" onClick={copyUpi}
-                            className="mt-4 inline-flex items-center gap-2 rounded-lg border border-[var(--border-strong)] bg-[var(--surface)] px-3 py-1.5 text-sm text-[var(--ink)] transition-colors hover:border-[var(--primary)]">
-                            <span className="text-[var(--gold-ink)]">{UPI_ID}</span>
-                            {copied ? <Check className="h-3.5 w-3.5 text-[var(--sage)]" /> : <Copy className="h-3.5 w-3.5" />}
-                          </button>
-                          <p className="mt-3 font-display text-2xl font-semibold text-[var(--ink)]">₹{Number(customAmount) || 101}</p>
-                          <p className="text-[11px] text-[var(--cream-faint)] mt-1">Scan to pay chosen amount</p>
-                        </div>
-                        <div className="flex flex-col justify-center gap-4">
-                          <label htmlFor="service-screenshot"
-                            className="group flex cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed border-[var(--border-strong)] bg-[var(--bg-alt)] px-4 py-6 text-center transition-colors hover:border-[var(--primary)]">
-                            {previewUrl ? (
-                              <span className="relative h-28 w-28 overflow-hidden rounded-lg border border-[var(--border)]">
-                                <Image src={previewUrl} alt="Preview" fill className="object-cover" unoptimized />
-                                <span className="absolute right-1 top-1 flex h-5 w-5 items-center justify-center rounded-full bg-[var(--sage)] text-white">
-                                  <CheckCircle2 className="h-3.5 w-3.5" />
-                                </span>
-                              </span>
-                            ) : (
-                              <UploadCloud className="h-8 w-8 text-[var(--faint)] transition-colors group-hover:text-[var(--primary)]" />
-                            )}
-                            <span className="mt-3 text-sm font-medium text-[var(--ink)]">{t.dashboard.uploadScreenshot}</span>
-                            <span className="mt-1 text-xs text-[var(--faint)]">PNG or JPG, up to 10 MB</span>
-                            <input id="service-screenshot" type="file" accept="image/*" className="hidden"
-                              onChange={(e) => handleFile(e.target.files?.[0] ?? null)} />
-                          </label>
-                          <Button
-                            onClick={selectedService === "Match Horoscope" ? submitMatchHoroscope : submitServiceRequest}
-                            loading={submitting} disabled={!file} className="w-full">
-                            {t.dashboard.submitRequest}
-                          </Button>
-                          <p className="text-center text-xs text-[var(--faint)]">{t.dashboard.paymentNote}</p>
-                        </div>
-                      </div>
-                    )}
                   </section>
                 )}
               </div>
