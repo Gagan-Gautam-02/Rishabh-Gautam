@@ -20,6 +20,22 @@ function WaIcon() {
     </svg>
   );
 }
+function IgIcon() {
+  return (
+    <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="2" y="2" width="20" height="20" rx="5" ry="5" />
+      <circle cx="12" cy="12" r="5" />
+      <circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none" />
+    </svg>
+  );
+}
+function FbIcon() {
+  return (
+    <svg className="h-4 w-4" viewBox="0 0 24 24" fill="currentColor">
+      <path d="M24 12.073C24 5.405 18.627 0 12 0S0 5.405 0 12.073C0 18.13 4.388 23.17 10.125 24v-8.437H7.078v-3.49h3.047V9.41c0-3.025 1.792-4.697 4.533-4.697 1.312 0 2.686.236 2.686.236v2.97h-1.513c-1.491 0-1.956.93-1.956 1.886v2.267h3.328l-.532 3.49h-2.796V24C19.612 23.17 24 18.13 24 12.073z" />
+    </svg>
+  );
+}
 
 export function Footer() {
   const { t } = useT();
@@ -63,6 +79,18 @@ export function Footer() {
 
           {/* Social links */}
           <div className="mt-5 flex items-center gap-3">
+            <a href="https://www.instagram.com/shastriyayogshala" target="_blank" rel="noopener noreferrer"
+              className="flex h-9 w-9 items-center justify-center rounded-full transition-all duration-300 hover:scale-110"
+              style={{ background: "rgba(225,48,108,0.12)", color: "#E1306C", border: "1px solid rgba(225,48,108,0.2)" }}
+              aria-label="Instagram">
+              <IgIcon />
+            </a>
+            <a href="https://facebook.com/shastriyayogshala" target="_blank" rel="noopener noreferrer"
+              className="flex h-9 w-9 items-center justify-center rounded-full transition-all duration-300 hover:scale-110"
+              style={{ background: "rgba(24,119,242,0.12)", color: "#1877F2", border: "1px solid rgba(24,119,242,0.2)" }}
+              aria-label="Facebook">
+              <FbIcon />
+            </a>
             <a href="https://www.youtube.com/@ShastriyaYogshala" target="_blank" rel="noopener noreferrer"
               className="flex h-9 w-9 items-center justify-center rounded-full transition-all duration-300 hover:scale-110"
               style={{ background: "rgba(255,0,0,0.12)", color: "#FF0000", border: "1px solid rgba(255,0,0,0.2)" }}

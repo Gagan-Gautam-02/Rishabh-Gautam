@@ -51,20 +51,6 @@ export const SERVICES = [
     action: "book",
   },
   {
-    title: "Your Life Predictions",
-    description: "Personalized forecast covering health, finance, love, and career.",
-    detailedDescription:
-      "Gain foresight into key life phases, upcoming planetary shifts, and opportunities across your health, wealth, love, and career journey.",
-    highlights: [
-      "Multi-Year Life Roadmap",
-      "Career &amp; Wealth Guidance",
-      "Timing of Key Life Events",
-    ],
-    icon: "FileText",
-    image: "/service-life-predictions.png",
-    action: "book",
-  },
-  {
     title: "Auspicious Time (Muhurat)",
     description: "Find favorable timings for weddings, business launches, and major decisions.",
     detailedDescription:
@@ -76,20 +62,6 @@ export const SERVICES = [
     ],
     icon: "Atom",
     image: "/service-gochar-phal.png",
-    action: "book",
-  },
-  {
-    title: "Ask to Astrologer",
-    description: "Direct one-on-one consultation for pressing life questions.",
-    detailedDescription:
-      "Connect directly with an experienced Vedic Astrologer to get precise answers, remedies, and personal guidance for any specific concern or query.",
-    highlights: [
-      "1-on-1 Direct Consultation",
-      "Private Chat &amp; Video Support",
-      "Actionable Guidance &amp; Remedies",
-    ],
-    icon: "Phone",
-    image: "/service-talk-astrologer.png",
     action: "book",
   },
 ] as const;

@@ -3,14 +3,18 @@
 import Link from "next/link";
 import Image from "next/image";
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { motion, useReducedMotion } from "framer-motion";
 import {
   CheckCircle2, ArrowRight, Clock, Users, Award, BookOpen,
-  Calendar, ChevronDown, ChevronUp, MessageCircle, MapPin, Wifi, User,
+  MessageCircle, MapPin, Wifi, User, Loader2,
 } from "lucide-react";
+import toast from "react-hot-toast";
 import { useT } from "@/store/localeStore";
 import { useAuthStore } from "@/store/authStore";
-import type { YogaTypeData, DurationTier, WeekModule } from "@/lib/yogaCourses";
+import { processRazorpayPayment } from "@/lib/razorpay";
+import { createYogaBooking } from "@/lib/bookings";
+import type { YogaTypeData, DurationTier } from "@/lib/yogaCourses";
 
 // ── Rise animation ───────────────────────────────────────────────
 function useRise() {
@@ -21,43 +25,6 @@ function useRise() {
     viewport: { once: true, amount: 0.1 as const },
     transition: { duration: 0.7, delay, ease: [0.16, 1, 0.3, 1] as const },
   });
-}
-
-// ── Module accordion card ────────────────────────────────────────
-function ModuleCard({ mod, idx, isHi }: { mod: WeekModule; idx: number; isHi: boolean }) {
-  const [open, setOpen] = useState(idx === 0);
-  return (
-    <div className="rounded-xl overflow-hidden transition-all duration-300"
-      style={{ border: "1px solid var(--brass-hairline)", background: open ? "rgba(31,111,79,0.08)" : "transparent" }}>
-      <button onClick={() => setOpen(!open)} className="w-full flex items-center justify-between px-5 py-4 text-left">
-        <div className="flex items-center gap-4">
-          <span className="flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold"
-            style={{ background: open ? "var(--brass)" : "var(--emerald-wash)", color: open ? "var(--forest-deep)" : "var(--brass)", border: "1px solid var(--brass-hairline)" }}>
-            {String(idx + 1).padStart(2, "0")}
-          </span>
-          <div>
-            <p className="eyebrow text-[10px] mb-0.5">{isHi ? mod.weekHi : mod.week}</p>
-            <p className="font-semibold text-sm" style={{ color: "var(--cream)" }}>{isHi ? mod.titleHi : mod.title}</p>
-          </div>
-        </div>
-        {open
-          ? <ChevronUp className="h-4 w-4 flex-shrink-0" style={{ color: "var(--brass)" }} />
-          : <ChevronDown className="h-4 w-4 flex-shrink-0" style={{ color: "var(--cream-muted)" }} />}
-      </button>
-      {open && (
-        <div className="px-5 pb-5">
-          <ul className="space-y-2">
-            {(isHi ? mod.topicsHi : mod.topics).map((topic, i) => (
-              <li key={i} className="flex items-start gap-2.5 text-sm" style={{ color: "var(--cream-muted)" }}>
-                <CheckCircle2 className="h-3.5 w-3.5 mt-0.5 flex-shrink-0" style={{ color: "var(--brass)" }} />
-                {topic}
-              </li>
-            ))}
-          </ul>
-        </div>
-      )}
-    </div>
-  );
 }
 
 // ── Duration Tab Selector ────────────────────────────────────────
@@ -94,18 +61,83 @@ function TypeIcon({ slug }: { slug: string }) {
 // ── Main component ───────────────────────────────────────────────
 export function YogaCourseTypePage({ data }: { data: YogaTypeData }) {
   const { locale } = useT();
+  const router = useRouter();
   const user = useAuthStore((s) => s.user);
+  const profile = useAuthStore((s) => s.profile);
   const isHi = locale === "hi";
   const rise = useRise();
   const WA_HREF = "https://wa.me/917300530090";
-  const bookHref = user ? "/dashboard" : "/signup";
 
   const [activeTierKey, setActiveTierKey] = useState(data.tiers[0].key);
+  const [isProcessing, setIsProcessing] = useState(false);
+
   const tier = data.tiers.find((t) => t.key === activeTierKey) ?? data.tiers[0];
 
   const waMsg = encodeURIComponent(
     `Namaste! I am interested in the ${isHi ? data.nameHi : data.name} (${isHi ? tier.labelHi : tier.label}) at Shastriya Yogshala. Please share details.`
   );
+
+  // Directly trigger Razorpay payment for Yoga Course
+  const handleSelectAndPay = async () => {
+    if (!user) {
+      toast(
+        isHi
+          ? "कोर्स बुक करने के लिए कृपया पहले लॉगिन या साइन अप करें।"
+          : "Please log in or sign up before purchasing a yoga course.",
+        { icon: "ℹ️" }
+      );
+      router.push(`/signup?redirect=${encodeURIComponent(typeof window !== "undefined" ? window.location.pathname : "/#yoga")}`);
+      return;
+    }
+
+    const numericFee = parseInt(tier.fee.replace(/[^\d]/g, ""), 10) || 1500;
+    setIsProcessing(true);
+
+    try {
+      processRazorpayPayment({
+        amount: numericFee,
+        serviceName: `${data.name} (${tier.label})`,
+        userName: profile?.name || user.displayName || user.email || "Student",
+        userEmail: user.email || "",
+        userPhone: profile?.phone || user.phoneNumber || "",
+        onSuccess: async (rzpResult) => {
+          try {
+            await createYogaBooking({
+              userId: user.uid,
+              userName: profile?.name || user.displayName || user.email || "Student",
+              userPhone: profile?.phone || user.phoneNumber || "",
+              courseName: data.name,
+              durationLabel: tier.label,
+              amount: numericFee,
+              paymentMethod: "razorpay",
+              razorpayPaymentId: rzpResult.razorpay_payment_id,
+              status: "confirmed",
+              note: `Yoga Enrollment: ${data.name} (${tier.label}) | Razorpay ID: ${rzpResult.razorpay_payment_id}`,
+            });
+
+            toast.success(
+              isHi
+                ? "भुगतान सफल रहा! आपका योग कोर्स 24 घंटे में कन्फर्म हो जाएगा। 🙏"
+                : "Payment successful! Your yoga course enrollment will be confirmed within 24 hours. 🙏"
+            );
+            router.push("/dashboard?tab=status");
+          } catch (saveErr) {
+            console.error("Failed to save booking:", saveErr);
+            toast.error("Payment received! Reference: " + rzpResult.razorpay_payment_id);
+          } finally {
+            setIsProcessing(false);
+          }
+        },
+        onError: (err) => {
+          setIsProcessing(false);
+          toast.error(err || "Payment was not completed.");
+        },
+      });
+    } catch (err) {
+      setIsProcessing(false);
+      toast.error("Error initiating payment gateway. Please try again.");
+    }
+  };
 
   return (
     <main style={{ background: "var(--forest)" }} className="min-h-screen">
@@ -138,7 +170,7 @@ export function YogaCourseTypePage({ data }: { data: YogaTypeData }) {
             {data.highlight && (
               <div className="mt-4 inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-semibold"
                 style={{ background: "rgba(37,211,102,0.15)", border: "1px solid rgba(37,211,102,0.3)", color: "#4ade80" }}>
-                <span className="w-1.5 h-1.5 rounded-full bg-green-400" />
+                <span className="w-2 h-2 rounded-full animate-pulse" style={{ background: "#4ade80" }} />
                 {isHi ? data.highlightHi : data.highlight}
               </div>
             )}
@@ -146,7 +178,7 @@ export function YogaCourseTypePage({ data }: { data: YogaTypeData }) {
         </div>
       </section>
 
-      {/* ══ DURATION SELECTOR STRIP ═════════════════════════════════ */}
+      {/* ══ DURATION TABS & FEE STRIP ═══════════════════════════════ */}
       <div style={{ background: "var(--forest-deep)", borderBottom: "1px solid var(--brass-hairline)" }}>
         <div className="max-w-[1100px] mx-auto px-5 sm:px-10 py-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div>
@@ -188,9 +220,9 @@ export function YogaCourseTypePage({ data }: { data: YogaTypeData }) {
       <div className="max-w-[1100px] mx-auto px-5 sm:px-10 lg:px-16 py-16 sm:py-24 grid grid-cols-1 lg:grid-cols-[1fr_300px] gap-16">
 
         {/* ── LEFT COLUMN ── */}
-        <div className="space-y-20">
+        <div className="space-y-16">
 
-          {/* About */}
+          {/* About / Overview */}
           <motion.section {...rise(0)}>
             <p className="eyebrow mb-3">{isHi ? "कार्यक्रम परिचय" : "About This Program"}</p>
             <h2 className="heading text-[clamp(1.8rem,4vw,3rem)] mb-5">{isHi ? "इस कार्यक्रम के बारे में" : "Overview"}</h2>
@@ -199,34 +231,8 @@ export function YogaCourseTypePage({ data }: { data: YogaTypeData }) {
             </p>
           </motion.section>
 
-          {/* What you learn — tier-specific */}
-          <motion.section {...rise(0.04)}>
-            <p className="eyebrow mb-3">{isHi ? "आप क्या सीखेंगे" : "Curriculum"} — {isHi ? tier.labelHi : tier.label}</p>
-            <h2 className="heading text-[clamp(1.8rem,4vw,3rem)] mb-6">{isHi ? "पाठ्यक्रम सामग्री" : "What You Will Learn"}</h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              {(isHi ? tier.teachesHi : tier.teaches).map((item, i) => (
-                <div key={i} className="flex items-start gap-3 p-4 rounded-xl"
-                  style={{ background: "rgba(31,111,79,0.07)", border: "1px solid var(--brass-hairline)" }}>
-                  <CheckCircle2 className="h-4 w-4 mt-0.5 flex-shrink-0" style={{ color: "var(--brass)" }} />
-                  <span className="text-sm" style={{ color: "var(--cream-muted)" }}>{item}</span>
-                </div>
-              ))}
-            </div>
-          </motion.section>
-
-          {/* Roadmap — tier-specific */}
-          <motion.section {...rise(0.06)}>
-            <p className="eyebrow mb-3">{isHi ? "रोडमैप" : "Roadmap"} — {isHi ? tier.labelHi : tier.label}</p>
-            <h2 className="heading text-[clamp(1.8rem,4vw,3rem)] mb-6">{isHi ? "चरण-दर-चरण योजना" : "Step-by-Step Plan"}</h2>
-            <div className="space-y-3">
-              {tier.modules.map((mod, i) => (
-                <ModuleCard key={i} mod={mod} idx={i} isHi={isHi} />
-              ))}
-            </div>
-          </motion.section>
-
           {/* Outcomes — tier-specific */}
-          <motion.section {...rise(0.08)}>
+          <motion.section {...rise(0.06)}>
             <p className="eyebrow mb-3">{isHi ? "परिणाम" : "Outcomes"}</p>
             <h2 className="heading text-[clamp(1.8rem,4vw,3rem)] mb-6">{isHi ? "आप क्या पाएंगे" : "What You Will Achieve"}</h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -243,7 +249,7 @@ export function YogaCourseTypePage({ data }: { data: YogaTypeData }) {
           </motion.section>
 
           {/* All pricing tiers comparison */}
-          <motion.section {...rise(0.09)}>
+          <motion.section {...rise(0.08)}>
             <p className="eyebrow mb-3">{isHi ? "सभी योजनाएँ" : "All Plans"}</p>
             <h2 className="heading text-[clamp(1.8rem,4vw,3rem)] mb-6">{isHi ? "अवधि और शुल्क" : "Duration & Fees"}</h2>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
@@ -259,26 +265,6 @@ export function YogaCourseTypePage({ data }: { data: YogaTypeData }) {
                 </button>
               ))}
             </div>
-          </motion.section>
-
-          {/* ── BATCH GALLERY ── */}
-          <motion.section {...rise(0.1)}>
-            <p className="eyebrow mb-3">{isHi ? "पिछले बैच" : "Previous Batches"}</p>
-            <h2 className="heading text-[clamp(1.8rem,4vw,3rem)] mb-6">{isHi ? "हमारे साधक" : "Our Students"}</h2>
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-              {Array.from({ length: 6 }).map((_, i) => (
-                <div key={i} className="aspect-square rounded-xl flex flex-col items-center justify-center gap-2 transition-all duration-300 hover:scale-[1.02]"
-                  style={{ background: "rgba(31,111,79,0.08)", border: "1px dashed var(--brass-hairline)" }}>
-                  <Calendar className="h-6 w-6" style={{ color: "var(--brass)", opacity: 0.5 }} />
-                  <p className="text-xs text-center px-2" style={{ color: "var(--cream-faint)" }}>
-                    {isHi ? "फ़ोटो शीघ्र आएगी" : "Photo coming soon"}
-                  </p>
-                </div>
-              ))}
-            </div>
-            <p className="mt-4 text-xs" style={{ color: "var(--cream-faint)" }}>
-              {isHi ? "बैच की फोटो हमें WhatsApp पर भेजें।" : "Send your batch photos via WhatsApp and we will add them here."}
-            </p>
           </motion.section>
 
         </div>
@@ -310,11 +296,10 @@ export function YogaCourseTypePage({ data }: { data: YogaTypeData }) {
 
               <ul className="space-y-2.5 mb-5">
                 {[
-                  isHi ? "व्यक्तिगत शिक्षण" : "Classical instruction",
-                  isHi ? "शास्त्रीय पाठ्यक्रम" : "Full classical curriculum",
-                  isHi ? "सर्टिफिकेट" : "Certificate of completion",
-                  isHi ? "WhatsApp सहयोग" : "WhatsApp support",
-                  isHi ? "7 दिन · कोई अवकाश नहीं" : "7 Days a week · No off",
+                  isHi ? "व्यक्तिगत शास्त्रीय शिक्षण" : "Classical instruction",
+                  isHi ? "WhatsApp सहयोग एवं मार्गदर्शन" : "WhatsApp support & guidance",
+                  isHi ? "7 दिन · निरंतर अभ्यास" : "7 Days a week · Consistent practice",
+                  isHi ? "सर्टिफाइड योग गुरु द्वारा मार्गदर्शन" : "Guided by certified yoga masters",
                 ].map((item, i) => (
                   <li key={i} className="flex items-center gap-2.5 text-sm" style={{ color: "var(--cream-muted)" }}>
                     <CheckCircle2 className="h-3.5 w-3.5 flex-shrink-0" style={{ color: "var(--brass)" }} />
@@ -330,12 +315,24 @@ export function YogaCourseTypePage({ data }: { data: YogaTypeData }) {
                 {isHi ? "WhatsApp पर पूछें" : "Enquire on WhatsApp"}
               </a>
 
-              <Link href={bookHref}>
-                <button className="flex items-center justify-center gap-2 w-full py-3.5 rounded-full font-semibold text-sm transition-all duration-300 hover:opacity-90"
-                  style={{ background: "var(--brass)", color: "var(--forest-deep)" }}>
-                  {isHi ? "परामर्श बुक करें" : "Book Consultancy"} <ArrowRight className="h-4 w-4" />
-                </button>
-              </Link>
+              <button
+                type="button"
+                onClick={handleSelectAndPay}
+                disabled={isProcessing}
+                className="flex items-center justify-center gap-2 w-full py-3.5 rounded-full font-semibold text-sm transition-all duration-300 hover:opacity-90 disabled:opacity-60 cursor-pointer"
+                style={{ background: "var(--brass)", color: "var(--forest-deep)" }}>
+                {isProcessing ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    <span>{isHi ? "प्रोसेस हो रहा है..." : "Processing..."}</span>
+                  </>
+                ) : (
+                  <>
+                    <span>{isHi ? "चुनें और भुगतान करें" : "Select and Pay"}</span>
+                    <ArrowRight className="h-4 w-4" />
+                  </>
+                )}
+              </button>
             </div>
 
             {/* Other programs */}
@@ -382,14 +379,26 @@ export function YogaCourseTypePage({ data }: { data: YogaTypeData }) {
               className="inline-flex items-center gap-2 px-8 py-3.5 rounded-full font-semibold text-sm transition-all duration-300 hover:scale-[1.03]"
               style={{ background: "#25D366", color: "#fff" }}>
               <MessageCircle className="h-4 w-4" />
-              {isHi ? "WhatsApp पर बात करें" : "Chat on WhatsApp"}
+              {isHi ? "WhatsApp पर पूछें" : "Enquire on WhatsApp"}
             </a>
-            <Link href={bookHref}>
-              <button className="inline-flex items-center gap-2 px-8 py-3.5 rounded-full font-semibold text-sm transition-all duration-300 hover:opacity-90"
-                style={{ background: "var(--brass)", color: "var(--forest-deep)" }}>
-                {isHi ? "परामर्श बुक करें" : "Book Consultancy"} <ArrowRight className="h-4 w-4" />
-              </button>
-            </Link>
+            <button
+              type="button"
+              onClick={handleSelectAndPay}
+              disabled={isProcessing}
+              className="inline-flex items-center gap-2 px-8 py-3.5 rounded-full font-semibold text-sm transition-all duration-300 hover:opacity-90 disabled:opacity-60 cursor-pointer"
+              style={{ background: "var(--brass)", color: "var(--forest-deep)" }}>
+              {isProcessing ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  <span>{isHi ? "प्रोसेस हो रहा है..." : "Processing..."}</span>
+                </>
+              ) : (
+                <>
+                  <span>{isHi ? "चुनें और भुगतान करें" : "Select and Pay"}</span>
+                  <ArrowRight className="h-4 w-4" />
+                </>
+              )}
+            </button>
           </div>
         </motion.div>
       </section>

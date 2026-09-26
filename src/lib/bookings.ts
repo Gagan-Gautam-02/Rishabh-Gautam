@@ -342,6 +342,56 @@ export async function createMatchHoroscopeBooking(input: {
   return bookingRef.id;
 }
 
+/** Yoga Course purchase booking record */
+export async function createYogaBooking(input: {
+  userId: string;
+  userName: string;
+  userPhone: string;
+  courseName: string;
+  durationLabel: string;
+  amount: number;
+  paymentMethod: string;
+  razorpayPaymentId?: string;
+  status?: Booking["status"];
+  note?: string;
+}) {
+  const db = getFirebaseDb();
+  const todayStr = new Date().toISOString().split("T")[0];
+
+  const bookingRef = await addDoc(collection(db, "bookings"), {
+    userId: input.userId,
+    userName: input.userName,
+    userPhone: input.userPhone,
+    date: todayStr,
+    timeSlot: `${input.courseName} (${input.durationLabel})`,
+    serviceName: `Yoga Course: ${input.courseName}`,
+    slotId: "",
+    amount: input.amount,
+    screenshotUrl: "",
+    paymentMethod: input.paymentMethod,
+    ...(input.razorpayPaymentId ? { razorpayPaymentId: input.razorpayPaymentId } : {}),
+    ...(input.note ? { note: input.note } : {}),
+    status: input.status || (input.razorpayPaymentId ? "confirmed" : "pending"),
+    createdAt: serverTimestamp(),
+  });
+
+  try {
+    await addDoc(collection(db, "notifications"), {
+      type: "new_booking",
+      bookingId: bookingRef.id,
+      userName: input.userName,
+      date: todayStr,
+      timeSlot: `Yoga: ${input.courseName} · ${input.durationLabel}`,
+      read: false,
+      createdAt: serverTimestamp(),
+    });
+  } catch (err) {
+    console.error("Failed to create notification:", err);
+  }
+
+  return bookingRef.id;
+}
+
 export async function updateBookingStatus(
   bookingId: string,
   status: Booking["status"],

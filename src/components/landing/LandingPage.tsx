@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, useReducedMotion } from "framer-motion";
 import { ArrowRight, ArrowDown, ArrowLeft, CheckCircle2, Sparkles, HeartHandshake, Home, FileText, Atom, Phone } from "lucide-react";
 import { SERVICES, APP_NAME } from "@/lib/constants";
@@ -123,7 +123,7 @@ const YOGA_TYPE_CARDS = [
     tagline: "At Your Home · One-on-One", taglineHi: "आपके घर पर · एकांत",
     from: "₹15,000 / month", fromHi: "₹15,000 / माह से",
     image: "/YogaImage1.jpg", href: "/yoga/personal",
-    badge: "Most Personal", badgeHi: "सबसे व्यक्तिगत",
+    badge: "Most Personalized", badgeHi: "सबसे व्यक्तिगत",
     features: ["Teacher comes to your home", "Hands-on corrections daily", "1M / 3M / 6M / 12M plans"],
     featuresHi: ["शिक्षक आपके घर आते हैं", "प्रतिदिन हाथों से सुधार", "1M / 3M / 6M / 12M योजनाएँ"],
   },
@@ -160,17 +160,25 @@ export function LandingPage() {
   const prevSlide = () => setSlideIdx((i) => (i - 1 + FEATURED_SLIDES.length) % FEATURED_SLIDES.length);
   const nextSlide = () => setSlideIdx((i) => (i + 1) % FEATURED_SLIDES.length);
 
+  // Auto-swipe carousel every 3 seconds
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setSlideIdx((i) => (i + 1) % FEATURED_SLIDES.length);
+    }, 3000);
+    return () => clearInterval(timer);
+  }, []);
+
   return (
     <main style={{ background: "var(--forest)" }}>
 
       {/* ══ 1. HERO ════════════════════════════════════════════════ */}
-      <section id="home" className="relative min-h-[92vh] flex flex-col justify-center items-center text-center overflow-hidden px-5 sm:px-8 lg:px-16 pt-24 pb-16">
+      <section id="home" className="relative min-h-[92vh] flex flex-col justify-center items-center text-center overflow-hidden px-5 sm:px-8 lg:px-16 pt-16 pb-16">
         {/* radial glow */}
         <div className="pointer-events-none absolute inset-0" style={{ background: "radial-gradient(ellipse 85% 65% at 50% 35%, rgba(31,111,79,0.24) 0%, transparent 70%)" }} />
         <div className="constellation pointer-events-none absolute inset-0 opacity-40" />
 
         {/* ── Top Center Logo & Location Badge ── */}
-        <motion.div {...rise(0)} className="relative z-10 flex flex-col items-center mb-6">
+        <motion.div {...rise(0)} className="relative z-10 flex flex-col items-center mb-10">
           <div className="relative h-28 w-28 sm:h-36 sm:w-36 md:h-40 md:w-40 rounded-full overflow-hidden p-1 shadow-[0_0_50px_rgba(201,162,39,0.28)] border-2 border-[var(--brass)] bg-[var(--forest-deep)] transition-all duration-500 hover:scale-105 hover:shadow-[0_0_65px_rgba(201,162,39,0.42)]">
             <div className="relative h-full w-full rounded-full overflow-hidden">
               <Image
@@ -189,7 +197,7 @@ export function LandingPage() {
             style={{ background: "rgba(201,162,39,0.08)", border: "1px solid var(--brass-hairline)", color: "var(--cream-muted)" }}>
             <span className="w-1.5 h-1.5 rounded-full" style={{ background: "var(--brass)" }} />
             <span className="eyebrow tracking-widest text-[11px]">
-              {"शास्त्रीय योगशाला · ब्रजभूमि, भारत · स्थापित 2024"}
+              {isHi ? "शास्त्रीय योगशाला · ब्रजभूमि, भारत · स्थापित 2024" : "Shastriya Yogshala · Braj Bhumi, India · Est. 2024"}
             </span>
           </div>
         </motion.div>
@@ -200,7 +208,7 @@ export function LandingPage() {
             {t.landing.welcomeTitle}
           </motion.h1>
 
-          <motion.p {...rise(0.16)} className="max-w-2xl text-base sm:text-lg leading-relaxed mb-8" style={{ color: "var(--cream-muted)" }}>
+          <motion.p {...rise(0.16)} className="max-w-2xl text-base sm:text-lg leading-relaxed mb-12" style={{ color: "var(--cream-muted)" }}>
             {t.landing.heroSubtext}
           </motion.p>
         </div>
@@ -210,13 +218,13 @@ export function LandingPage() {
           <Link href="/#yoga">
             <button className="flex items-center gap-2 px-8 py-3.5 rounded-full text-sm font-semibold transition-all duration-300 hover:scale-[1.03] shadow-[0_4px_20px_rgba(201,162,39,0.25)]"
               style={{ background: "var(--brass)", color: "var(--forest-deep)" }}>
-              {isHi ? "पाठ्यक्रम देखें" : "Explore Courses"} <ArrowRight className="h-4 w-4" />
+              {isHi ? "योग पाठ्यक्रम देखें" : "Explore Yoga Courses"} <ArrowRight className="h-4 w-4" />
             </button>
           </Link>
           <Link href={bookHref}>
             <button className="flex items-center gap-2 px-8 py-3.5 rounded-full text-sm font-semibold transition-all duration-300 hover:bg-[var(--brass-soft)]"
               style={{ border: "1px solid var(--brass-hairline)", color: "var(--brass)" }}>
-              {isHi ? "परामर्श बुक करें" : "Book Consultancy"}
+              {isHi ? "ज्योतिष परामर्श बुक करें" : "Book Astrology Consultation"}
             </button>
           </Link>
         </motion.div>
@@ -313,156 +321,158 @@ export function LandingPage() {
       {/* ══ 4. YOGA COURSES GRID ══════════════════════════════════ */}
       <section id="yoga" className="py-20 sm:py-28 px-5 sm:px-8 lg:px-16 max-w-[1240px] mx-auto">
         <motion.div {...rise(0)} className="mb-14">
-          <p className="eyebrow mb-4">शास्त्रीय योगशाला</p>
+          <p className="eyebrow mb-4">{isHi ? "शास्त्रीय योगशाला" : "Shastriya Yogshala"}</p>
           <div className="flex flex-wrap items-baseline gap-x-4">
             <h2 className="heading text-[clamp(2.5rem,6vw,5rem)]">Yoga</h2>
             <span className="script text-[clamp(1.5rem,4vw,3.5rem)]">Programs</span>
           </div>
           <p className="mt-4 max-w-xl text-sm leading-relaxed" style={{ color: "var(--cream-muted)" }}>
-            तीन प्रकार के शास्त्रीय योग कार्यक्रम — समूह, ऑनलाइन व्यक्तिगत और व्यक्तिगत (आमने-सामने)।
+            {isHi
+              ? "तीन प्रकार के शास्त्रीय योग कार्यक्रम — समूह, ऑनलाइन व्यक्तिगत और व्यक्तिगत (आमने-सामने)।"
+              : "Three types of classical yoga programs — Group, Online Personal, and Personal (In-Person)."}
           </p>
         </motion.div>
 
         {/* 3 yoga type cards + Daily 7 Days highlight */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 auto-rows-[300px]">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 lg:auto-rows-[310px]">
 
-          {/* Card 1 — Group Yoga (tall, 2 rows) */}
-          <motion.div {...rise(0.05)} className="group card-editorial rounded-2xl lg:row-span-2 relative cursor-pointer overflow-hidden"
+          {/* Card 1 — Group Yoga (tall, 2 rows on desktop, natural flex on mobile) */}
+          <motion.div {...rise(0.05)} className="group card-editorial rounded-2xl lg:row-span-2 flex flex-col relative overflow-hidden"
             style={{ background: "linear-gradient(150deg, var(--emerald) 0%, var(--forest-deep) 100%)", border: "1px solid var(--brass-hairline)" }}>
-            {/* Image — top 50% */}
-            <div className="absolute inset-x-0 top-0 h-[50%]">
-              <Image src={YOGA_TYPE_CARDS[0].image} alt={YOGA_TYPE_CARDS[0].name} fill className="object-cover" sizes="(max-width: 768px) 100vw, 400px" />
+            {/* Image banner */}
+            <div className="relative w-full h-52 sm:h-60 lg:h-[46%] shrink-0 overflow-hidden">
+              <Image src={YOGA_TYPE_CARDS[0].image} alt={YOGA_TYPE_CARDS[0].name} fill className="object-cover transition-transform duration-500 group-hover:scale-105" sizes="(max-width: 768px) 100vw, 400px" />
               <div className="absolute inset-0" style={{ background: "linear-gradient(to bottom, transparent 40%, var(--emerald) 100%)" }} />
-            </div>
-            {/* Badge */}
-            <div className="absolute top-3 left-3 z-10">
-              <span className="text-[9px] font-bold px-2 py-1 rounded-full" style={{ background: "var(--brass)", color: "var(--forest-deep)" }}>
-                {isHi ? YOGA_TYPE_CARDS[0].badgeHi : YOGA_TYPE_CARDS[0].badge}
-              </span>
-            </div>
-            {/* Text — bottom 50% */}
-            <div className="absolute inset-x-0 bottom-0 h-[50%] flex flex-col justify-between p-5">
-              <div>
-                <p className="eyebrow mb-1" style={{ fontSize: "0.6rem" }}>{YOGA_TYPE_CARDS[0].serial}</p>
-                <p className="heading text-2xl sm:text-3xl leading-tight">{isHi ? YOGA_TYPE_CARDS[0].nameHi : YOGA_TYPE_CARDS[0].name}</p>
-                <p className="script text-lg mt-0.5">{isHi ? YOGA_TYPE_CARDS[0].taglineHi : YOGA_TYPE_CARDS[0].tagline}</p>
+              {/* Badge */}
+              <div className="absolute top-3 left-3 z-10">
+                <span className="text-[10px] font-bold px-3 py-1 rounded-full shadow-md" style={{ background: "var(--brass)", color: "var(--forest-deep)" }}>
+                  {isHi ? YOGA_TYPE_CARDS[0].badgeHi : YOGA_TYPE_CARDS[0].badge}
+                </span>
               </div>
+            </div>
+
+            {/* Card Body */}
+            <div className="flex-1 flex flex-col justify-between p-5 sm:p-6 gap-4">
               <div>
-                <ul className="space-y-1 mb-4">
+                <p className="eyebrow mb-1" style={{ fontSize: "0.65rem" }}>{YOGA_TYPE_CARDS[0].serial}</p>
+                <p className="heading text-2xl sm:text-3xl leading-tight">{isHi ? YOGA_TYPE_CARDS[0].nameHi : YOGA_TYPE_CARDS[0].name}</p>
+                <p className="script text-lg mt-0.5" style={{ color: "var(--brass)" }}>{isHi ? YOGA_TYPE_CARDS[0].taglineHi : YOGA_TYPE_CARDS[0].tagline}</p>
+                <ul className="space-y-1.5 mt-3">
                   {(isHi ? YOGA_TYPE_CARDS[0].featuresHi : YOGA_TYPE_CARDS[0].features).map((f, i) => (
                     <li key={i} className="flex items-start gap-2 text-xs" style={{ color: "var(--cream-muted)" }}>
-                      <CheckCircle2 className="h-3 w-3 mt-0.5 shrink-0" style={{ color: "var(--brass)" }} /> {f}
+                      <CheckCircle2 className="h-3.5 w-3.5 mt-0.5 shrink-0" style={{ color: "var(--brass)" }} /> {f}
                     </li>
                   ))}
                 </ul>
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="eyebrow text-[9px] mb-0.5">{isHi ? "से शुरू" : "Starting from"}</p>
-                    <span className="heading text-xl" style={{ color: "var(--brass)" }}>{isHi ? YOGA_TYPE_CARDS[0].fromHi : YOGA_TYPE_CARDS[0].from}</span>
-                  </div>
-                  <Link href={YOGA_TYPE_CARDS[0].href}>
-                    <button className="flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-full transition-all duration-300 hover:gap-2.5"
-                      style={{ border: "1px solid var(--brass-hairline)", color: "var(--brass)" }}>
-                      {isHi ? "विवरण देखें" : "View Details"} <ArrowRight className="h-3 w-3" />
-                    </button>
-                  </Link>
+              </div>
+
+              <div className="pt-3 border-t border-[var(--brass-hairline)] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                <div>
+                  <p className="eyebrow text-[9px] mb-0.5">{isHi ? "से शुरू" : "Starting from"}</p>
+                  <span className="heading text-xl" style={{ color: "var(--brass)" }}>{isHi ? YOGA_TYPE_CARDS[0].fromHi : YOGA_TYPE_CARDS[0].from}</span>
                 </div>
+                <Link href={YOGA_TYPE_CARDS[0].href} className="w-full sm:w-auto">
+                  <button className="w-full sm:w-auto flex items-center justify-center gap-2 text-xs font-semibold px-5 py-2.5 rounded-full transition-all duration-300 hover:scale-[1.02]"
+                    style={{ background: "var(--brass)", color: "var(--forest-deep)", boxShadow: "0 2px 10px rgba(201,162,39,0.25)" }}>
+                    {isHi ? "विवरण देखें" : "View Details"} <ArrowRight className="h-3.5 w-3.5" />
+                  </button>
+                </Link>
               </div>
             </div>
           </motion.div>
 
-          {/* Card 2 — Online Personal Yoga (featured square) */}
-          <motion.div {...rise(0.1)} className="group card-editorial rounded-2xl relative cursor-pointer overflow-hidden"
+          {/* Card 2 — Online Personal Yoga (featured) */}
+          <motion.div {...rise(0.1)} className="group card-editorial rounded-2xl relative overflow-hidden min-h-[300px] flex flex-col justify-between"
             style={{ background: "var(--forest-mid)", border: "1px solid var(--brass)" }}>
             <div className="absolute inset-y-0 left-0 w-[50%]">
               <Image src={YOGA_TYPE_CARDS[1].image} alt={YOGA_TYPE_CARDS[1].name} fill className="object-cover" sizes="200px" />
-              <div className="absolute inset-0" style={{ background: "linear-gradient(to right, transparent 40%, var(--forest-mid) 100%)" }} />
+              <div className="absolute inset-0" style={{ background: "linear-gradient(to right, transparent 35%, var(--forest-mid) 100%)" }} />
             </div>
             {/* Badge */}
             <div className="absolute top-3 right-3 z-10">
-              <span className="text-[9px] font-bold px-2 py-0.5 rounded-full" style={{ background: "var(--brass)", color: "var(--forest-deep)" }}>
+              <span className="text-[9px] font-bold px-2.5 py-0.5 rounded-full" style={{ background: "var(--brass)", color: "var(--forest-deep)" }}>
                 {isHi ? YOGA_TYPE_CARDS[1].badgeHi : YOGA_TYPE_CARDS[1].badge}
               </span>
             </div>
-            <div className="absolute inset-y-0 right-0 w-[50%] flex flex-col justify-between p-5">
+            <div className="relative z-10 ml-auto w-[55%] h-full flex flex-col justify-between p-5">
               <div>
-                <p className="eyebrow mb-2" style={{ fontSize: "0.6rem" }}>{YOGA_TYPE_CARDS[1].serial}</p>
+                <p className="eyebrow mb-1" style={{ fontSize: "0.6rem" }}>{YOGA_TYPE_CARDS[1].serial}</p>
                 <p className="heading text-xl leading-tight">{isHi ? YOGA_TYPE_CARDS[1].nameHi : YOGA_TYPE_CARDS[1].name}</p>
                 <p className="script text-base mt-0.5">{isHi ? YOGA_TYPE_CARDS[1].taglineHi : YOGA_TYPE_CARDS[1].tagline}</p>
               </div>
-              <div>
+              <div className="mt-4">
                 <div>
                   <p className="eyebrow text-[9px] mb-0.5">{isHi ? "से शुरू" : "From"}</p>
                   <span className="heading text-lg" style={{ color: "var(--brass)" }}>{isHi ? YOGA_TYPE_CARDS[1].fromHi : YOGA_TYPE_CARDS[1].from}</span>
                 </div>
                 <Link href={YOGA_TYPE_CARDS[1].href}>
-                  <button className="mt-3 w-full py-2 rounded-full text-xs font-semibold transition-all duration-300 hover:opacity-90"
+                  <button className="mt-3 w-full py-2.5 rounded-full text-xs font-semibold flex items-center justify-center gap-1.5 transition-all duration-300 hover:opacity-90"
                     style={{ background: "var(--brass)", color: "var(--forest-deep)" }}>
-                    {isHi ? "विवरण देखें" : "View Details"}
+                    {isHi ? "विवरण देखें" : "View Details"} <ArrowRight className="h-3 w-3" />
                   </button>
                 </Link>
               </div>
             </div>
           </motion.div>
 
-          {/* Card 3 — Personal In-Person (square) */}
-          <motion.div {...rise(0.15)} className="group card-editorial rounded-2xl relative cursor-pointer overflow-hidden"
+          {/* Card 3 — Personal In-Person */}
+          <motion.div {...rise(0.15)} className="group card-editorial rounded-2xl relative overflow-hidden min-h-[300px] flex flex-col justify-between"
             style={{ background: "linear-gradient(135deg, var(--forest-mid) 0%, rgba(31,111,79,0.2) 100%)", border: "1px solid var(--brass-hairline)" }}>
             <div className="absolute inset-y-0 left-0 w-[50%]">
               <Image src={YOGA_TYPE_CARDS[2].image} alt={YOGA_TYPE_CARDS[2].name} fill className="object-cover" sizes="200px" />
-              <div className="absolute inset-0" style={{ background: "linear-gradient(to right, transparent 40%, var(--forest-mid) 100%)" }} />
+              <div className="absolute inset-0" style={{ background: "linear-gradient(to right, transparent 35%, var(--forest-mid) 100%)" }} />
             </div>
             {/* Badge */}
             <div className="absolute top-3 right-3 z-10">
-              <span className="text-[9px] font-bold px-2 py-0.5 rounded-full" style={{ background: "rgba(201,162,39,0.15)", color: "var(--brass)", border: "1px solid var(--brass)" }}>
+              <span className="text-[9px] font-bold px-2.5 py-0.5 rounded-full" style={{ background: "rgba(201,162,39,0.15)", color: "var(--brass)", border: "1px solid var(--brass)" }}>
                 {isHi ? YOGA_TYPE_CARDS[2].badgeHi : YOGA_TYPE_CARDS[2].badge}
               </span>
             </div>
-            <div className="absolute inset-y-0 right-0 w-[50%] flex flex-col justify-between p-5">
+            <div className="relative z-10 ml-auto w-[55%] h-full flex flex-col justify-between p-5">
               <div>
                 <p className="eyebrow mb-1" style={{ fontSize: "0.6rem" }}>{YOGA_TYPE_CARDS[2].serial}</p>
                 <p className="heading text-xl leading-tight">{isHi ? YOGA_TYPE_CARDS[2].nameHi : YOGA_TYPE_CARDS[2].name}</p>
                 <p className="script text-base mt-0.5">{isHi ? YOGA_TYPE_CARDS[2].taglineHi : YOGA_TYPE_CARDS[2].tagline}</p>
               </div>
-              <div>
+              <div className="mt-4">
                 <div>
                   <p className="eyebrow text-[9px] mb-0.5">{isHi ? "से शुरू" : "From"}</p>
                   <span className="heading text-lg" style={{ color: "var(--brass)" }}>{isHi ? YOGA_TYPE_CARDS[2].fromHi : YOGA_TYPE_CARDS[2].from}</span>
                 </div>
                 <Link href={YOGA_TYPE_CARDS[2].href}>
-                  <button className="mt-3 w-full py-2 rounded-full text-xs font-semibold transition-all duration-300 hover:bg-[var(--brass-soft)]"
+                  <button className="mt-3 w-full py-2.5 rounded-full text-xs font-semibold flex items-center justify-center gap-1.5 transition-all duration-300 hover:bg-[var(--brass-soft)]"
                     style={{ border: "1px solid var(--brass-hairline)", color: "var(--brass)" }}>
-                    {isHi ? "विवरण देखें" : "View Details"}
+                    {isHi ? "विवरण देखें" : "View Details"} <ArrowRight className="h-3 w-3" />
                   </button>
                 </Link>
               </div>
             </div>
           </motion.div>
 
-          {/* Card 4 — Daily 7 Days highlight (wide, col-span-2) */}
-          <motion.div {...rise(0.2)} className="group card-editorial rounded-2xl lg:col-span-2 relative cursor-pointer overflow-hidden"
+          {/* Card 4 — Daily 7 Days highlight (wide, fully responsive, zero trimming on mobile) */}
+          <motion.div {...rise(0.2)} className="group card-editorial rounded-2xl lg:col-span-2 relative overflow-hidden h-auto min-h-0"
             style={{ background: "linear-gradient(90deg, var(--forest-deep) 0%, rgba(31,111,79,0.15) 100%)", border: "1px solid var(--brass-hairline)" }}>
             {/* Subtle animated glow */}
             <div className="absolute inset-0 pointer-events-none" style={{ background: "radial-gradient(ellipse 60% 80% at 10% 50%, rgba(37,211,102,0.07) 0%, transparent 70%)" }} />
-            <div className="card-overlay-content h-full flex flex-col sm:flex-row items-center justify-between gap-6 p-7">
+            <div className="relative z-10 flex flex-col md:flex-row items-stretch md:items-center justify-between gap-6 p-6 sm:p-8">
               <div className="flex-1">
                 <div className="flex items-center gap-2 mb-3">
                   <span className="w-2 h-2 rounded-full animate-pulse" style={{ background: "#4ade80" }} />
                   <span className="eyebrow text-[11px]" style={{ color: "#4ade80" }}>{isHi ? "प्रतिदिन उपलब्ध" : "Available Daily"}</span>
                 </div>
-                <h3 className="heading text-2xl sm:text-4xl mb-2">
+                <h3 className="heading text-2xl sm:text-3xl lg:text-4xl mb-2">
                   {isHi ? "प्रतिदिन योग कक्षाएँ — 7 दिन" : "Daily Yoga Classes — 7 Days a Week"}
                 </h3>
                 <p className="script text-xl mb-3" style={{ color: "var(--brass)" }}>
                   {isHi ? "कोई साप्ताहिक अवकाश नहीं · निरंतर अभ्यास" : "No Weekly Off · Consistent Practice"}
                 </p>
-                <p className="text-sm leading-relaxed max-w-sm" style={{ color: "var(--cream-muted)" }}>
+                <p className="text-sm leading-relaxed max-w-lg" style={{ color: "var(--cream-muted)" }}>
                   {isHi
                     ? "शास्त्रीय योगशाला में योग कभी रुकता नहीं — सोमवार से रविवार, हर दिन कक्षाएँ। असली परिवर्तन तब आता है जब अभ्यास नहीं रुकता।"
                     : "At Shastriya Yogshala, yoga never stops — classes every single day of the week. Real transformation comes from uninterrupted practice."}
                 </p>
               </div>
-              <div className="flex flex-col gap-3 w-full sm:w-auto sm:min-w-[200px]">
+              <div className="flex flex-col gap-3 w-full md:w-auto md:min-w-[240px] shrink-0">
                 {YOGA_TYPE_CARDS.map((c) => (
                   <Link key={c.id} href={c.href}>
                     <div className="flex items-center justify-between px-4 py-3 rounded-xl transition-all duration-200 hover:scale-[1.02]"
@@ -538,32 +548,34 @@ export function LandingPage() {
                     <ArrowRight className="hidden sm:block h-4 w-4 shrink-0 transition-transform duration-300 group-hover:translate-x-1" style={{ color: "var(--brass)" }} />
                   </Link>
 
-                  {/* WhatsApp button — only triggers when clicked */}
-                  <button
-                    type="button"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      e.preventDefault();
-                      setHelpModalOpen(true);
-                    }}
+                  {/* WhatsApp direct button */}
+                  <a
+                    href={`https://wa.me/917300530090?text=${encodeURIComponent(
+                      isHi
+                        ? `नमस्ते! मुझे ${service.title} के बारे में जानकारी एवं ज्योतिष परामर्श चाहिए।`
+                        : `Namaste! I would like details and astrology consultation for ${service.title}.`
+                    )}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    onClick={(e) => e.stopPropagation()}
                     className="shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold transition-all duration-300 hover:scale-105"
                     style={{
                       background: "linear-gradient(135deg, #25D366 0%, #128C7E 100%)",
                       color: "#FFFFFF",
                       boxShadow: "0 2px 10px rgba(37, 211, 102, 0.3)",
                     }}
-                    title={isHi ? "व्हाट्सएप सहायता" : "WhatsApp Help"}
+                    title={isHi ? "WhatsApp पर संपर्क करें" : "WhatsApp"}
                   >
                     <WaIcon className="h-3.5 w-3.5 fill-white" />
-                    <span>{isHi ? "सहायता" : "Help"}</span>
-                  </button>
+                    <span>WhatsApp</span>
+                  </a>
                 </div>
               </motion.div>
             );
           })}
         </div>
 
-        {/* Section bottom Help CTA */}
+        {/* Section bottom WhatsApp CTA */}
         <motion.div {...rise(0.4)} className="mt-10 flex flex-col sm:flex-row items-center justify-between gap-4 p-5 sm:p-6 rounded-2xl border"
           style={{ background: "rgba(201, 162, 39, 0.04)", borderColor: "var(--brass-hairline)" }}>
           <div>
@@ -574,9 +586,14 @@ export function LandingPage() {
               {isHi ? "व्हाट्सएप पर सीधे हमसे जुड़ें और तुरंत सहायता व परामर्श प्राप्त करें।" : "Chat directly with us on WhatsApp for instant guidance and personalized help."}
             </p>
           </div>
-          <button
-            type="button"
-            onClick={() => setHelpModalOpen(true)}
+          <a
+            href={`https://wa.me/917300530090?text=${encodeURIComponent(
+              isHi
+                ? "नमस्ते! मुझे ज्योतिष एवं कुंडली मार्गदर्शन व परामर्श चाहिए।"
+                : "Namaste! I would like guidance and consultation regarding Astrology & Kundali."
+            )}`}
+            target="_blank"
+            rel="noopener noreferrer"
             className="shrink-0 flex items-center gap-2 px-6 py-3 rounded-full text-xs sm:text-sm font-semibold transition-all duration-300 hover:scale-[1.03]"
             style={{
               background: "linear-gradient(135deg, #25D366 0%, #128C7E 100%)",
@@ -585,8 +602,8 @@ export function LandingPage() {
             }}
           >
             <WaIcon className="h-4 w-4 fill-white" />
-            <span>{isHi ? "सहायता एवं परामर्श लें" : "Get Help & Consultation"}</span>
-          </button>
+            <span>WhatsApp</span>
+          </a>
         </motion.div>
       </section>
 
@@ -647,7 +664,7 @@ export function LandingPage() {
               <Link href="/#yoga">
                 <button className="px-8 py-3.5 rounded-full text-sm font-semibold transition-all duration-300 hover:bg-[var(--brass-soft)]"
                   style={{ border: "1px solid var(--brass-hairline)", color: "var(--brass)" }}>
-                  Explore Courses
+                  {isHi ? "योग पाठ्यक्रम देखें" : "Explore Yoga Courses"}
                 </button>
               </Link>
             </div>
@@ -688,7 +705,7 @@ export function LandingPage() {
             {/* Footer note */}
             <p className="mt-14 text-xs" style={{ color: "var(--cream-faint)" }}>
               <span style={{ color: "var(--brass)" }}>◆</span>{" "}
-              {"शास्त्रीय योगशाला · ब्रजभूमि, भारत · स्थापित 2024"}{" "}
+              {isHi ? "शास्त्रीय योगशाला · ब्रजभूमि, भारत · स्थापित 2024" : "Shastriya Yogshala · Braj Bhumi, India · Est. 2024"}{" "}
               <span style={{ color: "var(--brass)" }}>◆</span>
             </p>
           </motion.div>

@@ -315,7 +315,7 @@ const onlinePersonalYoga: YogaTypeData = {
   tagline: "Daily 1-Hour — Live, Personal, Classical",
   taglineHi: "प्रतिदिन 1 घंटा — लाइव, व्यक्तिगत, शास्त्रीय",
   description:
-    "Learn classical yoga one-on-one with your teacher via live online sessions — every single day, 7 days a week. Each session is 1 hour and fully personalized to your level, needs, and schedule. No group distractions — just you and pure classical practice.",
+    "Learn classical yoga one-on-one with your teacher via live online sessions. Each session is 1 hour and fully personalized to your level, needs, and schedule. No group distractions — just you and pure classical practice.",
   descriptionHi:
     "लाइव ऑनलाइन सत्रों के माध्यम से अपने शिक्षक के साथ एकांत में शास्त्रीय योग सीखें — हर दिन, सप्ताह में 7 दिन। प्रत्येक सत्र 1 घंटे का है और पूरी तरह से आपके स्तर, जरूरतों और समय-सारणी के अनुसार व्यक्तिगत है।",
   heroImage: "/YogaImage5.avif",
