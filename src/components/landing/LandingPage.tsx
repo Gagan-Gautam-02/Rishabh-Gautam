@@ -172,14 +172,14 @@ export function LandingPage() {
     <main style={{ background: "var(--forest)" }}>
 
       {/* ══ 1. HERO ════════════════════════════════════════════════ */}
-      <section id="home" className="relative min-h-[92vh] flex flex-col justify-center items-center text-center overflow-hidden px-5 sm:px-8 lg:px-16 pt-16 pb-16">
+      <section id="home" className="relative min-h-[82vh] flex flex-col justify-start items-center text-center overflow-hidden px-5 sm:px-8 lg:px-16 pt-4 sm:pt-6 pb-16">
         {/* radial glow */}
         <div className="pointer-events-none absolute inset-0" style={{ background: "radial-gradient(ellipse 85% 65% at 50% 35%, rgba(31,111,79,0.24) 0%, transparent 70%)" }} />
         <div className="constellation pointer-events-none absolute inset-0 opacity-40" />
 
         {/* ── Top Center Logo & Location Badge ── */}
-        <motion.div {...rise(0)} className="relative z-10 flex flex-col items-center mb-10">
-          <div className="relative h-28 w-28 sm:h-36 sm:w-36 md:h-40 md:w-40 rounded-full overflow-hidden p-1 shadow-[0_0_50px_rgba(201,162,39,0.28)] border-2 border-[var(--brass)] bg-[var(--forest-deep)] transition-all duration-500 hover:scale-105 hover:shadow-[0_0_65px_rgba(201,162,39,0.42)]">
+        <motion.div {...rise(0)} className="relative z-10 flex flex-col items-center mb-5 sm:mb-6">
+          <div className="relative h-24 w-24 sm:h-32 sm:w-32 md:h-36 md:w-36 rounded-full overflow-hidden p-1 shadow-[0_0_50px_rgba(201,162,39,0.28)] border-2 border-[var(--brass)] bg-[var(--forest-deep)] transition-all duration-500 hover:scale-105 hover:shadow-[0_0_65px_rgba(201,162,39,0.42)]">
             <div className="relative h-full w-full rounded-full overflow-hidden">
               <Image
                 src="/astro-bodh-logo.png"
@@ -187,16 +187,16 @@ export function LandingPage() {
                 fill
                 priority
                 className="object-cover"
-                sizes="(max-width: 640px) 112px, (max-width: 768px) 144px, 160px"
+                sizes="(max-width: 640px) 96px, (max-width: 768px) 128px, 144px"
               />
             </div>
           </div>
 
           {/* Location badge */}
-          <div className="mt-4 inline-flex items-center gap-2 px-3.5 py-1 rounded-full text-xs font-medium"
+          <div className="mt-3 inline-flex items-center gap-2 px-3 py-0.5 rounded-full text-xs font-medium"
             style={{ background: "rgba(201,162,39,0.08)", border: "1px solid var(--brass-hairline)", color: "var(--cream-muted)" }}>
             <span className="w-1.5 h-1.5 rounded-full" style={{ background: "var(--brass)" }} />
-            <span className="eyebrow tracking-widest text-[11px]">
+            <span className="eyebrow tracking-widest text-[10px] sm:text-[11px]">
               {isHi ? "शास्त्रीय योगशाला · ब्रजभूमि, भारत · स्थापित 2024" : "Shastriya Yogshala · Braj Bhumi, India · Est. 2024"}
             </span>
           </div>
@@ -204,11 +204,11 @@ export function LandingPage() {
 
         {/* ── Display headline (single, localized) ── */}
         <div className="relative z-10 max-w-4xl mx-auto flex flex-col items-center">
-          <motion.h1 {...rise(0.08)} className="heading text-[clamp(2.4rem,6vw,5.5rem)] leading-[1.05] tracking-tight mb-4">
+          <motion.h1 {...rise(0.08)} className="heading text-[clamp(2.2rem,5.5vw,5rem)] leading-[1.05] tracking-tight mb-3">
             {t.landing.welcomeTitle}
           </motion.h1>
 
-          <motion.p {...rise(0.16)} className="max-w-2xl text-base sm:text-lg leading-relaxed mb-12" style={{ color: "var(--cream-muted)" }}>
+          <motion.p {...rise(0.16)} className="max-w-2xl text-base sm:text-lg leading-relaxed mb-8" style={{ color: "var(--cream-muted)" }}>
             {t.landing.heroSubtext}
           </motion.p>
         </div>
@@ -216,13 +216,13 @@ export function LandingPage() {
         {/* ── CTA row — Explore Courses first, Book Consultancy second ── */}
         <motion.div {...rise(0.3)} className="relative z-10 flex flex-col sm:flex-row gap-4 items-center justify-center">
           <Link href="/#yoga">
-            <button className="flex items-center gap-2 px-8 py-3.5 rounded-full text-sm font-semibold transition-all duration-300 hover:scale-[1.03] shadow-[0_4px_20px_rgba(201,162,39,0.25)]"
+            <button className="flex items-center gap-2 px-8 py-3.5 rounded-full text-sm font-semibold transition-all duration-300 hover:scale-[1.03] shadow-[0_4px_20px_rgba(201,162,39,0.25)] cursor-pointer"
               style={{ background: "var(--brass)", color: "var(--forest-deep)" }}>
               {isHi ? "योग पाठ्यक्रम देखें" : "Explore Yoga Courses"} <ArrowRight className="h-4 w-4" />
             </button>
           </Link>
           <Link href={bookHref}>
-            <button className="flex items-center gap-2 px-8 py-3.5 rounded-full text-sm font-semibold transition-all duration-300 hover:bg-[var(--brass-soft)]"
+            <button className="flex items-center gap-2 px-8 py-3.5 rounded-full text-sm font-semibold transition-all duration-300 hover:bg-[var(--brass-soft)] cursor-pointer"
               style={{ border: "1px solid var(--brass-hairline)", color: "var(--brass)" }}>
               {isHi ? "ज्योतिष परामर्श बुक करें" : "Book Astrology Consultation"}
             </button>
@@ -548,34 +548,28 @@ export function LandingPage() {
                     <ArrowRight className="hidden sm:block h-4 w-4 shrink-0 transition-transform duration-300 group-hover:translate-x-1" style={{ color: "var(--brass)" }} />
                   </Link>
 
-                  {/* WhatsApp direct button */}
-                  <a
-                    href={`https://wa.me/917300530090?text=${encodeURIComponent(
-                      isHi
-                        ? `नमस्ते! मुझे ${service.title} के बारे में जानकारी एवं ज्योतिष परामर्श चाहिए।`
-                        : `Namaste! I would like details and astrology consultation for ${service.title}.`
-                    )}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    onClick={(e) => e.stopPropagation()}
-                    className="shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold transition-all duration-300 hover:scale-105"
-                    style={{
-                      background: "linear-gradient(135deg, #25D366 0%, #128C7E 100%)",
-                      color: "#FFFFFF",
-                      boxShadow: "0 2px 10px rgba(37, 211, 102, 0.3)",
-                    }}
-                    title={isHi ? "WhatsApp पर संपर्क करें" : "WhatsApp"}
-                  >
-                    <WaIcon className="h-3.5 w-3.5 fill-white" />
-                    <span>WhatsApp</span>
-                  </a>
+                  {/* Book button */}
+                  <Link href={targetUrl} onClick={(e) => e.stopPropagation()} className="shrink-0">
+                    <button
+                      type="button"
+                      className="flex items-center gap-1.5 px-4 py-1.5 rounded-full text-xs font-semibold transition-all duration-300 hover:scale-105 cursor-pointer shadow-md"
+                      style={{
+                        background: "var(--brass)",
+                        color: "var(--forest-deep)",
+                      }}
+                      title={isHi ? "परामर्श बुक करें" : "Book Service"}
+                    >
+                      <span>{isHi ? "बुक करें" : "Book"}</span>
+                      <ArrowRight className="h-3 w-3" />
+                    </button>
+                  </Link>
                 </div>
               </motion.div>
             );
           })}
         </div>
 
-        {/* Section bottom WhatsApp CTA */}
+        {/* Section bottom Book CTA */}
         <motion.div {...rise(0.4)} className="mt-10 flex flex-col sm:flex-row items-center justify-between gap-4 p-5 sm:p-6 rounded-2xl border"
           style={{ background: "rgba(201, 162, 39, 0.04)", borderColor: "var(--brass-hairline)" }}>
           <div>
@@ -583,27 +577,23 @@ export function LandingPage() {
               {isHi ? "ज्योतिष एवं कुंडली मार्गदर्शन चाहिए?" : "Need Astrology or Kundali Guidance?"}
             </h3>
             <p className="text-xs sm:text-sm" style={{ color: "var(--cream-muted)" }}>
-              {isHi ? "व्हाट्सएप पर सीधे हमसे जुड़ें और तुरंत सहायता व परामर्श प्राप्त करें।" : "Chat directly with us on WhatsApp for instant guidance and personalized help."}
+              {isHi ? "वैदिक ज्योतिष एवं कुंडली विश्लेषण के लिए आज ही परामर्श बुक करें।" : "Book a personalized consultation for in-depth Vedic astrology and kundali analysis."}
             </p>
           </div>
-          <a
-            href={`https://wa.me/917300530090?text=${encodeURIComponent(
-              isHi
-                ? "नमस्ते! मुझे ज्योतिष एवं कुंडली मार्गदर्शन व परामर्श चाहिए।"
-                : "Namaste! I would like guidance and consultation regarding Astrology & Kundali."
-            )}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="shrink-0 flex items-center gap-2 px-6 py-3 rounded-full text-xs sm:text-sm font-semibold transition-all duration-300 hover:scale-[1.03]"
-            style={{
-              background: "linear-gradient(135deg, #25D366 0%, #128C7E 100%)",
-              color: "#FFFFFF",
-              boxShadow: "0 4px 16px rgba(37, 211, 102, 0.35)",
-            }}
-          >
-            <WaIcon className="h-4 w-4 fill-white" />
-            <span>WhatsApp</span>
-          </a>
+          <Link href={bookHref}>
+            <button
+              type="button"
+              className="shrink-0 flex items-center gap-2 px-6 py-3 rounded-full text-xs sm:text-sm font-semibold transition-all duration-300 hover:scale-[1.03] cursor-pointer shadow-md"
+              style={{
+                background: "var(--brass)",
+                color: "var(--forest-deep)",
+                boxShadow: "0 4px 16px rgba(201, 162, 39, 0.35)",
+              }}
+            >
+              <span>{isHi ? "परामर्श बुक करें" : "Book Consultation"}</span>
+              <ArrowRight className="h-4 w-4" />
+            </button>
+          </Link>
         </motion.div>
       </section>
 
