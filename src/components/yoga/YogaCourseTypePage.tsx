@@ -231,23 +231,6 @@ export function YogaCourseTypePage({ data }: { data: YogaTypeData }) {
             </p>
           </motion.section>
 
-          {/* Outcomes — tier-specific */}
-          <motion.section {...rise(0.06)}>
-            <p className="eyebrow mb-3">{isHi ? "परिणाम" : "Outcomes"}</p>
-            <h2 className="heading text-[clamp(1.8rem,4vw,3rem)] mb-6">{isHi ? "आप क्या पाएंगे" : "What You Will Achieve"}</h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {(isHi ? tier.outcomesHi : tier.outcomes).map((item, i) => (
-                <div key={i} className="flex items-start gap-3">
-                  <span className="w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5"
-                    style={{ background: "var(--brass)", color: "var(--forest-deep)", fontSize: "0.65rem", fontWeight: 700 }}>
-                    {i + 1}
-                  </span>
-                  <p className="text-sm leading-relaxed" style={{ color: "var(--cream-muted)" }}>{item}</p>
-                </div>
-              ))}
-            </div>
-          </motion.section>
-
           {/* All pricing tiers comparison */}
           <motion.section {...rise(0.08)}>
             <p className="eyebrow mb-3">{isHi ? "सभी योजनाएँ" : "All Plans"}</p>

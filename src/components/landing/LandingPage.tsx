@@ -172,13 +172,13 @@ export function LandingPage() {
     <main style={{ background: "var(--forest)" }}>
 
       {/* ══ 1. HERO ════════════════════════════════════════════════ */}
-      <section id="home" className="relative min-h-[82vh] flex flex-col justify-start items-center text-center overflow-hidden px-5 sm:px-8 lg:px-16 pt-4 sm:pt-6 pb-16">
+      <section id="home" className="relative min-h-[85vh] flex flex-col justify-start items-center text-center overflow-hidden px-5 sm:px-8 lg:px-16 pt-8 sm:pt-12 pb-16 sm:pb-20">
         {/* radial glow */}
         <div className="pointer-events-none absolute inset-0" style={{ background: "radial-gradient(ellipse 85% 65% at 50% 35%, rgba(31,111,79,0.24) 0%, transparent 70%)" }} />
         <div className="constellation pointer-events-none absolute inset-0 opacity-40" />
 
         {/* ── Top Center Logo & Location Badge ── */}
-        <motion.div {...rise(0)} className="relative z-10 flex flex-col items-center mb-5 sm:mb-6">
+        <motion.div {...rise(0)} className="relative z-10 flex flex-col items-center mb-8 sm:mb-12">
           <div className="relative h-24 w-24 sm:h-32 sm:w-32 md:h-36 md:w-36 rounded-full overflow-hidden p-1 shadow-[0_0_50px_rgba(201,162,39,0.28)] border-2 border-[var(--brass)] bg-[var(--forest-deep)] transition-all duration-500 hover:scale-105 hover:shadow-[0_0_65px_rgba(201,162,39,0.42)]">
             <div className="relative h-full w-full rounded-full overflow-hidden">
               <Image
@@ -193,7 +193,7 @@ export function LandingPage() {
           </div>
 
           {/* Location badge */}
-          <div className="mt-3 inline-flex items-center gap-2 px-3 py-0.5 rounded-full text-xs font-medium"
+          <div className="mt-4 sm:mt-5 inline-flex items-center gap-2 px-4 py-1 rounded-full text-xs font-medium"
             style={{ background: "rgba(201,162,39,0.08)", border: "1px solid var(--brass-hairline)", color: "var(--cream-muted)" }}>
             <span className="w-1.5 h-1.5 rounded-full" style={{ background: "var(--brass)" }} />
             <span className="eyebrow tracking-widest text-[10px] sm:text-[11px]">
@@ -204,11 +204,11 @@ export function LandingPage() {
 
         {/* ── Display headline (single, localized) ── */}
         <div className="relative z-10 max-w-4xl mx-auto flex flex-col items-center">
-          <motion.h1 {...rise(0.08)} className="heading text-[clamp(2.2rem,5.5vw,5rem)] leading-[1.05] tracking-tight mb-3">
+          <motion.h1 {...rise(0.08)} className="heading text-[clamp(2.2rem,5.5vw,5rem)] leading-[1.05] tracking-tight mb-6 sm:mb-8">
             {t.landing.welcomeTitle}
           </motion.h1>
 
-          <motion.p {...rise(0.16)} className="max-w-2xl text-base sm:text-lg leading-relaxed mb-8" style={{ color: "var(--cream-muted)" }}>
+          <motion.p {...rise(0.16)} className="max-w-2xl text-base sm:text-lg leading-relaxed mb-10 sm:mb-14" style={{ color: "var(--cream-muted)" }}>
             {t.landing.heroSubtext}
           </motion.p>
         </div>

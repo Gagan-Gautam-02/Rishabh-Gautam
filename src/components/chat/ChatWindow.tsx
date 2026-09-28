@@ -140,7 +140,7 @@ export function ChatWindow({
         <div>
           <p className="font-medium text-[var(--ink)]">
             {title ??
-              (currentRole === "admin" ? peerUserName : "Astrologer")}
+              (currentRole === "admin" ? peerUserName : "Pandit Ji")}
           </p>
           <p className="text-xs text-[var(--faint)]">
             {subtitle ??
@@ -160,6 +160,13 @@ export function ChatWindow({
         <AnimatePresence initial={false}>
           {messages.map((m) => {
             const mine = m.senderId === currentUserId;
+            const isPandit =
+              m.senderRole === "admin" ||
+              !m.senderName ||
+              m.senderName.toLowerCase().includes("someone") ||
+              m.senderName.toLowerCase().includes("astrologer") ||
+              m.senderName.toLowerCase().includes("astro bodh");
+            const senderLabel = isPandit ? "Pandit Ji" : m.senderName;
             return (
               <motion.div
                 key={m.id}
@@ -180,7 +187,7 @@ export function ChatWindow({
                       mine ? "text-[var(--ink)]/70" : "text-[var(--gold-ink)]"
                     }`}
                   >
-                    {m.senderName}
+                    {senderLabel}
                   </p>
                   {m.imageUrl && (
                     <button

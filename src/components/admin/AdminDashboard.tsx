@@ -180,7 +180,7 @@ export function AdminDashboard() {
           bookingId: paidChatId(booking.userId),
           senderId: user.uid,
           senderRole: "admin",
-          senderName: user.displayName || "Astro Bodh Astrologer",
+          senderName: "Pandit Ji",
           text: `Your ${booking.serviceName || "consultation"} booking for ${booking.date} (${booking.timeSlot}) has been accepted! You can chat with me here.`,
           userId: booking.userId,
           userName: booking.userName,
@@ -905,7 +905,7 @@ function AdminChatInbox({
             bookingId={activeId}
             currentUserId={adminId}
             currentRole="admin"
-            currentName="Astrologer"
+            currentName="Pandit Ji"
             peerUserId={active.userId}
             peerUserName={active.userName}
             chatType={chatType}
