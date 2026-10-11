@@ -33,7 +33,12 @@ Use **Blocking functions** (Cloud Functions) if you want to restrict who can reg
 
 ## 2. Firestore Rules
 
-Paste into **Firestore → Rules** (or use `firestore.rules`):
+> ⚠️ **CRITICAL NOTE (Database Selection in Firebase Console):**  
+> Your project uses a custom named database: **`astrodata`** (`NEXT_PUBLIC_FIREBASE_FIRESTORE_DATABASE_ID=astrodata`).  
+> In the Firebase Console, go to **Firestore Database**, and at the top-left dropdown, **select `astrodata`** (not `(default)`).  
+> Then open the **Rules** tab, paste the rules below, and click **Publish**. If you paste them into `(default)`, the `astrodata` database will remain locked!
+
+Paste into **Firestore → Rules** for database **`astrodata`** (and also `(default)` if you use both):
 
 ```
 rules_version = '2';
@@ -68,7 +73,14 @@ service cloud.firestore {
 
     match /slots/{slotId} {
       allow read: if true;
-      allow write: if isAdmin();
+      allow create, delete: if isAdmin();
+      // Users may mark an open slot as booked when submitting a booking
+      allow update: if isAdmin()
+        || (isSignedIn()
+          && resource.data.isBooked == false
+          && request.resource.data.isBooked == true
+          && request.resource.data.diff(resource.data).affectedKeys()
+              .hasOnly(['isBooked']));
     }
 
     match /bookings/{bookingId} {
@@ -91,19 +103,58 @@ service cloud.firestore {
       allow update, delete: if isAdmin();
     }
 
-    match /chats/{bookingId} {
-      allow read, write: if isSignedIn() && (
-        isAdmin()
-        || get(/databases/$(database)/documents/bookings/$(bookingId)).data.userId
-            == request.auth.uid
-      );
+    match /settings/{settingId} {
+      allow read: if isSignedIn();
+      allow write: if isAdmin();
+    }
+
+    match /chats/{chatId} {
+      function ownsChat() {
+        return isSignedIn() && (
+          resource.data.userId == request.auth.uid
+          || chatId == 'support_' + request.auth.uid
+          || chatId == 'paid_' + request.auth.uid
+          || chatId == request.auth.uid
+        );
+      }
+
+      function creatingOwnChat() {
+        return isSignedIn()
+          && request.resource.data.userId == request.auth.uid
+          && (
+            chatId == 'support_' + request.auth.uid
+            || chatId == 'paid_' + request.auth.uid
+            || chatId == request.auth.uid
+          );
+      }
+
+      allow create: if isAdmin() || creatingOwnChat();
+      allow read: if isAdmin() || ownsChat();
+      allow update: if isAdmin()
+        || (ownsChat()
+          && request.resource.data.userId == resource.data.userId);
+      allow delete: if isAdmin();
 
       match /messages/{msgId} {
-        allow read, create: if isSignedIn() && (
+        allow read: if isSignedIn() && (
           isAdmin()
-          || get(/databases/$(database)/documents/bookings/$(bookingId)).data.userId
+          || chatId == request.auth.uid
+          || chatId == 'support_' + request.auth.uid
+          || chatId == 'paid_' + request.auth.uid
+          || get(/databases/$(database)/documents/chats/$(chatId)).data.userId
               == request.auth.uid
         );
+        allow create: if isSignedIn()
+          && request.resource.data.senderId == request.auth.uid
+          && (isAdmin() || request.resource.data.senderRole == 'user')
+          && (
+            isAdmin()
+            || chatId == request.auth.uid
+            || chatId == 'support_' + request.auth.uid
+            || chatId == 'paid_' + request.auth.uid
+            || get(/databases/$(database)/documents/chats/$(chatId)).data.userId
+                == request.auth.uid
+          );
         allow update, delete: if false;
       }
     }

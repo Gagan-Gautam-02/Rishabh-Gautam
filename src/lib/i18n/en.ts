@@ -115,7 +115,7 @@ export const en = {
     dob: "Date of Birth",
     place: "Place of Birth",
     time: "Time of Birth",
-    continuePayment: "Continue to payment",
+    continuePayment: "Offer Dakshina & Proceed",
     payment: "Payment",
     amount: "Amount",
     upiId: "UPI ID",

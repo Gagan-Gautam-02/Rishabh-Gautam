@@ -126,24 +126,10 @@ export const DASHBOARD_SERVICES = [
     action: "book",
   },
   {
-    title: "Your Life Predictions",
-    description: "Know about your Nature, Love and Career.",
-    icon: "FileText",
-    image: "/service-life-predictions.png",
-    action: "book",
-  },
-  {
     title: "Auspicious time",
     description: "A favorably chosen moment to launch any new venture, event, or life milestone to ensure maximum success and good fortune.",
     icon: "Atom",
     image: "/service-gochar-phal.png",
-    action: "book",
-  },
-  {
-    title: "Ask to Astrologer",
-    description: "Direct 1-on-1 guidance & specific remedies with an experienced Vedic Astrologer.",
-    icon: "Phone",
-    image: "/service-talk-astrologer.png",
     action: "book",
   },
 ] as const;

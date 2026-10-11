@@ -160,11 +160,11 @@ export function LandingPage() {
   const prevSlide = () => setSlideIdx((i) => (i - 1 + FEATURED_SLIDES.length) % FEATURED_SLIDES.length);
   const nextSlide = () => setSlideIdx((i) => (i + 1) % FEATURED_SLIDES.length);
 
-  // Auto-swipe carousel every 3 seconds
+  // Auto-swipe carousel every 10 seconds
   useEffect(() => {
     const timer = setInterval(() => {
       setSlideIdx((i) => (i + 1) % FEATURED_SLIDES.length);
-    }, 3000);
+    }, 10000);
     return () => clearInterval(timer);
   }, []);
 
@@ -440,8 +440,8 @@ export function LandingPage() {
                   <span className="heading text-lg" style={{ color: "var(--brass)" }}>{isHi ? YOGA_TYPE_CARDS[2].fromHi : YOGA_TYPE_CARDS[2].from}</span>
                 </div>
                 <Link href={YOGA_TYPE_CARDS[2].href}>
-                  <button className="mt-3 w-full py-2.5 rounded-full text-xs font-semibold flex items-center justify-center gap-1.5 transition-all duration-300 hover:bg-[var(--brass-soft)]"
-                    style={{ border: "1px solid var(--brass-hairline)", color: "var(--brass)" }}>
+                  <button className="mt-3 w-full py-2.5 rounded-full text-xs font-semibold flex items-center justify-center gap-1.5 transition-all duration-300 hover:opacity-90"
+                    style={{ background: "var(--brass)", color: "var(--forest-deep)" }}>
                     {isHi ? "विवरण देखें" : "View Details"} <ArrowRight className="h-3 w-3" />
                   </button>
                 </Link>

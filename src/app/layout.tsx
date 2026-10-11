@@ -31,6 +31,16 @@ export const metadata: Metadata = {
   title: `${APP_NAME} — Classical Yoga & Astrology`,
   description:
     "Shastriya Yogshala — Classical yoga courses (1, 3, 6 months) and Vedic astrology consultations. Ancient wisdom, living practice.",
+  icons: {
+    icon: [
+      { url: "/favicon.ico" },
+      { url: "/icon.png", type: "image/png" },
+    ],
+    apple: [
+      { url: "/apple-icon.png", type: "image/png" },
+    ],
+    shortcut: "/favicon.ico",
+  },
 };
 
 export default function RootLayout({

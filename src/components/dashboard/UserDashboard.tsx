@@ -103,7 +103,8 @@ const serviceIcons: Record<string, LucideIcon> = {
 
 export function UserDashboard() {
   const { user, profile } = useAuthStore();
-  const { t } = useT();
+  const { t, locale } = useT();
+  const isHi = locale === "hi";
   const reduce = useReducedMotion();
   const [tab, setTab] = useState<Tab>("services");
   const [bookings, setBookings] = useState<Booking[]>([]);
@@ -280,49 +281,16 @@ export function UserDashboard() {
               note: serviceNote.trim() || undefined,
             });
           }
-          toast.success("Payment successful! Your booking will be confirmed within 24 hours. 🙏");
+          toast.success(
+            isHi
+              ? "भुगतान सफल रहा! आपकी बुकिंग 24 घंटे में कन्फर्म हो जाएगी। 🙏"
+              : "Payment successful! Your booking will be confirmed within 24 hours. 🙏"
+          );
           resetServiceRequest();
           setTab("status");
         } catch (err: unknown) {
-          console.error("Booking creation after payment failed:", err);
-          // Fallback in case Firestore rules haven't updated or only allow 'pending'
-          try {
-            if (selectedService === "Match Horoscope") {
-              await createMatchHoroscopeBooking({
-                userId: user.uid,
-                userName: profile.name,
-                userPhone: profile.phone,
-                amount: amt,
-                paymentMethod: "razorpay",
-                razorpayPaymentId: rzpResult.razorpay_payment_id,
-                status: "pending",
-                ...matchDetails,
-                note: (serviceNote.trim() ? serviceNote.trim() + " | " : "") + `Razorpay Paid: ${rzpResult.razorpay_payment_id}`,
-              });
-            } else {
-              await createServiceBooking({
-                userId: user.uid,
-                userName: profile.name,
-                userPhone: profile.phone,
-                amount: amt,
-                paymentMethod: "razorpay",
-                razorpayPaymentId: rzpResult.razorpay_payment_id,
-                status: "pending",
-                serviceName: selectedService,
-                birthName: birthDetails.name.trim(),
-                dob: birthDetails.dob,
-                birthPlace: birthDetails.place.trim(),
-                birthTime: birthDetails.time,
-                note: (serviceNote.trim() ? serviceNote.trim() + " | " : "") + `Razorpay Paid: ${rzpResult.razorpay_payment_id}`,
-              });
-            }
-            toast.success("Payment successful! Booking will be confirmed within 24 hours. 🙏");
-            resetServiceRequest();
-            setTab("status");
-          } catch (retryErr: unknown) {
-            console.error("Retry booking creation failed:", retryErr);
-            toast.error("Payment received! Please note Payment ID: " + rzpResult.razorpay_payment_id);
-          }
+          console.error("Booking creation failed:", err);
+          toast.error("Payment received! Reference ID: " + rzpResult.razorpay_payment_id);
         } finally {
           setPayingWithRazorpay(false);
         }
@@ -554,7 +522,7 @@ export function UserDashboard() {
                     <div className="mb-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                       <Input label={t.dashboard.name} value={matchDetails.brideName} error={matchErrors.brideName}
                         onChange={(e) => setMatchDetails({ ...matchDetails, brideName: e.target.value })} />
-                      <Input label="Age" type="number" value={matchDetails.brideAge} error={matchErrors.brideAge}
+                      <Input label={isHi ? "आयु" : "Age"} type="number" value={matchDetails.brideAge} error={matchErrors.brideAge}
                         onChange={(e) => setMatchDetails({ ...matchDetails, brideAge: e.target.value })} />
                       <Input label={t.dashboard.dob} type="date" value={matchDetails.brideDob} error={matchErrors.brideDob}
                         onChange={(e) => setMatchDetails({ ...matchDetails, brideDob: e.target.value })} />
@@ -569,7 +537,7 @@ export function UserDashboard() {
                     <div className="mb-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                       <Input label={t.dashboard.name} value={matchDetails.groomName} error={matchErrors.groomName}
                         onChange={(e) => setMatchDetails({ ...matchDetails, groomName: e.target.value })} />
-                      <Input label="Age" type="number" value={matchDetails.groomAge} error={matchErrors.groomAge}
+                      <Input label={isHi ? "आयु" : "Age"} type="number" value={matchDetails.groomAge} error={matchErrors.groomAge}
                         onChange={(e) => setMatchDetails({ ...matchDetails, groomAge: e.target.value })} />
                       <Input label={t.dashboard.dob} type="date" value={matchDetails.groomDob} error={matchErrors.groomDob}
                         onChange={(e) => setMatchDetails({ ...matchDetails, groomDob: e.target.value })} />
@@ -582,13 +550,13 @@ export function UserDashboard() {
                     {/* Note / Specific Questions */}
                     <div className="mb-6">
                       <label className="mb-1.5 block text-sm font-medium text-[var(--ink)]">
-                        Special Note / Questions (Optional)
+                        {isHi ? "विशेष नोट / प्रश्न (वैकल्पिक)" : "Special Note / Questions (Optional)"}
                       </label>
                       <textarea
                         rows={2}
                         value={serviceNote}
                         onChange={(e) => setServiceNote(e.target.value)}
-                        placeholder="Any specific questions or details for the astrologer..."
+                        placeholder={isHi ? "ज्योतिषी जी के लिए कोई विशेष प्रश्न या विवरण..." : "Any specific questions or details for the astrologer..."}
                         className="w-full rounded-xl border border-[var(--border-strong)] bg-[var(--surface)] px-4 py-2.5 text-sm text-[var(--ink)] placeholder:text-[var(--faint)] outline-none focus:border-[var(--primary)] focus:ring-4 focus:ring-[var(--ring)]"
                       />
                     </div>
@@ -620,13 +588,13 @@ export function UserDashboard() {
                     {/* Note / Specific Questions */}
                     <div className="mb-6">
                       <label className="mb-1.5 block text-sm font-medium text-[var(--ink)]">
-                        Special Note / Questions (Optional)
+                        {isHi ? "विशेष नोट / प्रश्न (वैकल्पिक)" : "Special Note / Questions (Optional)"}
                       </label>
                       <textarea
                         rows={2}
                         value={serviceNote}
                         onChange={(e) => setServiceNote(e.target.value)}
-                        placeholder="Any specific questions or details for the astrologer..."
+                        placeholder={isHi ? "ज्योतिषी जी के लिए कोई विशेष प्रश्न या विवरण..." : "Any specific questions or details for the astrologer..."}
                         className="w-full rounded-xl border border-[var(--border-strong)] bg-[var(--surface)] px-4 py-2.5 text-sm text-[var(--ink)] placeholder:text-[var(--faint)] outline-none focus:border-[var(--primary)] focus:ring-4 focus:ring-[var(--ring)]"
                       />
                     </div>
@@ -646,32 +614,34 @@ export function UserDashboard() {
                         {t.dashboard.payment}
                       </h3>
                       <span className="text-[11px] px-2.5 py-0.5 rounded-full border border-[var(--brass-hairline)] bg-[var(--brass-soft)] text-[var(--brass)] font-medium">
-                        श्रद्धा अनुसार दक्षिणा · Your Choice
+                        {isHi ? "श्रद्धा अनुसार दक्षिणा · स्वेच्छा" : "Voluntary Dakshina · As Per Wish"}
                       </span>
                     </div>
                     <p className="mb-4 text-xs sm:text-sm text-[var(--faint)]">
-                      परामर्श के लिए कोई निश्चित शुल्क नहीं है — आप अपनी इच्छा व सामर्थ्य अनुसार दक्षिणा चुन सकते हैं।
+                      {isHi
+                        ? "परामर्श के लिए कोई निश्चित शुल्क नहीं है — आप अपनी इच्छा व सामर्थ्य अनुसार दक्षिणा चुन सकते हैं।"
+                        : "There is no fixed consultation fee — you may offer Dakshina according to your devotion and ability."}
                     </p>
 
                     {/* Summary */}
                     <div className="mb-6 rounded-xl border border-[var(--border)] bg-[var(--bg-alt)] px-4 py-3 text-sm text-[var(--body)]">
                       {selectedService === "Match Horoscope" ? (
                         <>
-                          <p><span className="text-[var(--faint)]">Bride:</span> {matchDetails.brideName}, Age {matchDetails.brideAge}, DOB {matchDetails.brideDob} · {matchDetails.brideBirthTime}</p>
-                          <p className="mt-1"><span className="text-[var(--faint)]">Place:</span> {matchDetails.brideBirthPlace}</p>
-                          <p className="mt-2"><span className="text-[var(--faint)]">Groom:</span> {matchDetails.groomName}, Age {matchDetails.groomAge}, DOB {matchDetails.groomDob} · {matchDetails.groomBirthTime}</p>
-                          <p className="mt-1"><span className="text-[var(--faint)]">Place:</span> {matchDetails.groomBirthPlace}</p>
+                          <p><span className="text-[var(--faint)]">{isHi ? "वधू:" : "Bride:"}</span> {matchDetails.brideName}, {isHi ? "आयु" : "Age"} {matchDetails.brideAge}, {isHi ? "जन्म तिथि" : "DOB"} {matchDetails.brideDob} · {matchDetails.brideBirthTime}</p>
+                          <p className="mt-1"><span className="text-[var(--faint)]">{isHi ? "स्थान:" : "Place:"}</span> {matchDetails.brideBirthPlace}</p>
+                          <p className="mt-2"><span className="text-[var(--faint)]">{isHi ? "वर:" : "Groom:"}</span> {matchDetails.groomName}, {isHi ? "आयु" : "Age"} {matchDetails.groomAge}, {isHi ? "जन्म तिथि" : "DOB"} {matchDetails.groomDob} · {matchDetails.groomBirthTime}</p>
+                          <p className="mt-1"><span className="text-[var(--faint)]">{isHi ? "स्थान:" : "Place:"}</span> {matchDetails.groomBirthPlace}</p>
                         </>
                       ) : (
                         <>
-                          <p><span className="text-[var(--faint)]">Name:</span> {birthDetails.name}</p>
-                          <p className="mt-1"><span className="text-[var(--faint)]">DOB:</span> {birthDetails.dob} · {birthDetails.time}</p>
-                          <p className="mt-1"><span className="text-[var(--faint)]">Place:</span> {birthDetails.place}</p>
+                          <p><span className="text-[var(--faint)]">{isHi ? "नाम:" : "Name:"}</span> {birthDetails.name}</p>
+                          <p className="mt-1"><span className="text-[var(--faint)]">{isHi ? "जन्म तिथि:" : "DOB:"}</span> {birthDetails.dob} · {birthDetails.time}</p>
+                          <p className="mt-1"><span className="text-[var(--faint)]">{isHi ? "स्थान:" : "Place:"}</span> {birthDetails.place}</p>
                         </>
                       )}
                       {serviceNote.trim() && (
                         <p className="mt-2.5 pt-2 border-t border-[var(--border)] text-xs text-[var(--body)]">
-                          <span className="font-semibold text-[var(--gold-ink)]">Note:</span> {serviceNote}
+                          <span className="font-semibold text-[var(--gold-ink)]">{isHi ? "विशेष नोट:" : "Note:"}</span> {serviceNote}
                         </p>
                       )}
                     </div>
@@ -680,11 +650,17 @@ export function UserDashboard() {
                     <div className="mb-6 rounded-xl border border-[var(--brass-hairline)] bg-[var(--bg-alt)] p-4 sm:p-5">
                       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-3">
                         <div>
-                          <p className="eyebrow text-[10px] text-[var(--brass)]">सहयोग / दक्षिणा राशि चुनें</p>
-                          <h4 className="heading text-base text-[var(--ink)]">Select Your Contribution Amount</h4>
+                          <p className="eyebrow text-[10px] text-[var(--brass)]">
+                            {isHi ? "सहयोग / दक्षिणा राशि चुनें" : "Choose Dakshina / Contribution"}
+                          </p>
+                          <h4 className="heading text-base text-[var(--ink)]">
+                            {isHi ? "अपनी दक्षिणा राशि चुनें" : "Select Your Contribution Amount"}
+                          </h4>
                         </div>
                         <div className="flex items-center gap-1">
-                          <span className="text-xs text-[var(--cream-muted)]">चयनित राशि:</span>
+                          <span className="text-xs text-[var(--cream-muted)]">
+                            {isHi ? "चयनित राशि:" : "Selected Amount:"}
+                          </span>
                           <span className="heading text-xl text-[var(--brass)]">₹{Number(customAmount) || 101}</span>
                         </div>
                       </div>
@@ -713,7 +689,7 @@ export function UserDashboard() {
                       {/* Custom input */}
                       <div className="flex flex-col sm:flex-row sm:items-center gap-2 pt-2 border-t border-[var(--brass-hairline)]/40">
                         <label className="text-xs text-[var(--cream-muted)] shrink-0">
-                          अपनी इच्छा अनुसार कोई भी राशि दर्ज करें (Custom Amount):
+                          {isHi ? "अपनी इच्छानुसार कोई भी राशि दर्ज करें:" : "Enter any custom amount:"}
                         </label>
                         <div className="relative flex-1 max-w-xs">
                           <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm font-bold text-[var(--brass)]">₹</span>
@@ -722,7 +698,7 @@ export function UserDashboard() {
                             min="1"
                             value={customAmount}
                             onChange={(e) => setCustomAmount(e.target.value)}
-                            placeholder="Enter any amount"
+                            placeholder={isHi ? "राशि दर्ज करें" : "Enter any amount"}
                             className="w-full pl-7 pr-3 py-1.5 rounded-lg text-sm border border-[var(--border-strong)] bg-[var(--surface)] text-[var(--ink)] outline-none focus:border-[var(--primary)] focus:ring-2 focus:ring-[var(--ring)]"
                           />
                         </div>
@@ -731,12 +707,16 @@ export function UserDashboard() {
 
                     {/* ── Razorpay Online Payment ── */}
                     <div className="rounded-xl border border-[var(--brass-hairline)] bg-[var(--bg-alt)] p-6 sm:p-8 text-center max-w-lg mx-auto">
-                      <p className="eyebrow text-xs mb-1">Total Contribution</p>
+                      <p className="eyebrow text-xs mb-1">
+                        {isHi ? "कुल दक्षिणा / सहयोग राशि" : "Total Contribution / Dakshina"}
+                      </p>
                       <p className="font-display text-4xl sm:text-5xl font-bold text-[var(--brass)] mb-2">
                         ₹{Number(customAmount) || 101}
                       </p>
                       <p className="text-xs sm:text-sm text-[var(--cream-muted)] mb-6 max-w-sm mx-auto">
-                        Instant confirmation via Razorpay. Supports UPI, Google Pay, PhonePe, Paytm, Debit/Credit Card & NetBanking.
+                        {isHi
+                          ? "रेज़रपे द्वारा त्वरित पुष्टि। UPI, Google Pay, PhonePe, Paytm, डेबिट/क्रेडिट कार्ड एवं नेटबैंकिंग समर्थित।"
+                          : "Instant confirmation via Razorpay. Supports UPI, Google Pay, PhonePe, Paytm, Debit/Credit Card & NetBanking."}
                       </p>
                       <Button
                         onClick={handleRazorpayPayment}
@@ -749,10 +729,13 @@ export function UserDashboard() {
                         }}
                       >
                         <CreditCard className="h-5 w-5 mr-2" />
-                        Pay ₹{Number(customAmount) || 101} & Book Now
+                        {isHi
+                          ? `₹${Number(customAmount) || 101} दक्षिणा देकर अभी बुक करें`
+                          : `Offer ₹${Number(customAmount) || 101} Dakshina & Book Now`}
                       </Button>
                       <p className="mt-4 text-[11px] text-[var(--cream-faint)] flex items-center justify-center gap-1.5">
-                        <Lock className="h-3 w-3" /> 256-bit Encrypted Secure Payment
+                        <Lock className="h-3 w-3" />
+                        {isHi ? "256-बिट एन्क्रिप्टेड सुरक्षित भुगतान" : "256-bit Encrypted Secure Payment"}
                       </p>
                     </div>
                   </section>
@@ -883,10 +866,10 @@ export function UserDashboard() {
         style={{ background: "rgba(37,211,102,0.04)", borderColor: "rgba(37,211,102,0.25)" }}>
         <div>
           <h3 className="font-semibold text-[var(--ink)] mb-1 text-sm sm:text-base">
-            Need Help or Have a Query?
+            {isHi ? "सहायता चाहिए या कोई प्रश्न है?" : "Need Help or Have a Query?"}
           </h3>
           <p className="text-xs sm:text-sm" style={{ color: "var(--cream-muted)" }}>
-            Contact us directly on WhatsApp for instant support, guidance, or booking help.
+            {isHi ? "त्वरित सहायता, मार्गदर्शन या बुकिंग में मदद के लिए सीधे WhatsApp पर संपर्क करें।" : "Contact us directly on WhatsApp for instant support, guidance, or booking help."}
           </p>
         </div>
         <a
@@ -903,7 +886,7 @@ export function UserDashboard() {
           <svg viewBox="0 0 24 24" fill="currentColor" className="h-4 w-4">
             <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413z" />
           </svg>
-          Chat on WhatsApp
+          {isHi ? "WhatsApp पर चैट करें" : "Chat on WhatsApp"}
         </a>
       </div>
 

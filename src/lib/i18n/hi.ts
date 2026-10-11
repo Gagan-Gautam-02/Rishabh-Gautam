@@ -116,7 +116,7 @@ export const hi: Dictionary = {
     dob: "जन्म तिथि",
     place: "जन्म स्थान",
     time: "जन्म समय",
-    continuePayment: "भुगतान पर जाएँ",
+    continuePayment: "दक्षिणा अर्पित करें एवं आगे बढ़ें",
     payment: "भुगतान",
     amount: "राशि",
     upiId: "UPI ID",
